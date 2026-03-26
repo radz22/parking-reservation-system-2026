@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   X,
+  Car
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -16,9 +17,9 @@ import { Button } from '@/components/ui/button';
 
 const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  {href: '/admin/parking-slot', label: 'Parking Slot', icon: Car},
  
 ];
-
 export function AdminSidebar() {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
