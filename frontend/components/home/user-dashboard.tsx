@@ -110,9 +110,9 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
       </main>
 
 <section id="reservation-info">
-     <div id="reservation-table" className="mt-20 max-w-8xl mx-auto">
+     <div id="reservation-table" className="mt-20 max-w-8xl mx-auto ">
       
-       <div className="bg-primary dark:bg-[#0a0a0a] h-fit py-20 transition-colors duration-300">
+       <div className="bg-primary dark:bg-[#121212] h-fit py-20 transition-colors duration-300">
         <div className="md:max-w-7xl md:mx-auto">
         <h1 className="font-semibold text-text text-2xl text-center md:text-start text text dark:text-white">Your Reservation:</h1>
 
