@@ -74,7 +74,7 @@ const handleSaveChanges = (e: React.FormEvent) => {
 
 
   return (
-    <div className="bg-body min-h-screen dark:bg-[#121212]">
+    <div className="bg-body min-h-screen dark:bg-text">
       <Navigation />
 
       <section id="profile-container">
@@ -105,7 +105,7 @@ const handleSaveChanges = (e: React.FormEvent) => {
             </div>
 
             {/* Personal Information Card */}
-            <div className="md:col-span-5 bg-primary p-6 rounded-xl shadow-sm border dark:bg-[#121212]">
+            <div className="md:col-span-5 bg-primary p-6 rounded-xl shadow-sm border  dark:bg-[#121212]">
               <h1 className="text-text font-semibold text-lg mb-5 text text dark:text-white">Personal Information:</h1>
 
               <div className="flex gap-5 border-b-2 pb-5 items-center">
@@ -121,7 +121,7 @@ const handleSaveChanges = (e: React.FormEvent) => {
               <div className="mt-5">
                 <form className="grid grid-cols-2 gap-4">
                   <div className="col-span-1">
-                    <label className="block text-xs font-bold text-text/50 uppercase">First Name:</label>
+                    <label className="block text-xs font-bold text-text/50 uppercase dark:text-primary/70">First Name:</label>
                     <input 
                       type="text" 
                       readOnly 
@@ -131,7 +131,7 @@ const handleSaveChanges = (e: React.FormEvent) => {
                   </div>
 
                   <div className="col-span-1">
-                    <label className="block text-xs font-bold text-text/50 uppercase">Last Name:</label>
+                    <label className="block text-xs font-bold text-text/50 uppercase dark:text-primary/70">Last Name:</label>
                     <input 
                       type="text" 
                       readOnly 
@@ -141,7 +141,7 @@ const handleSaveChanges = (e: React.FormEvent) => {
                   </div>
 
                   <div className="col-span-1">
-                    <label className="block text-xs font-bold text-text/50 uppercase">Email Address:</label>
+                    <label className="block text-xs font-bold text-text/50 uppercase dark:text-primary/70">Email Address:</label>
                     <input 
                       type="email" 
                       readOnly 
@@ -151,7 +151,7 @@ const handleSaveChanges = (e: React.FormEvent) => {
                   </div>
 
                    <div className="col-span-1 relative">
-        <label className="block text-xs font-bold text-text/50 uppercase">Password:</label>
+        <label className="block text-xs font-bold text-text/50 uppercase dark:text-primary/70">Password:</label>
   <div className="relative">
     <input 
       type={showPassword ? "text" : "password"} 
@@ -170,7 +170,7 @@ const handleSaveChanges = (e: React.FormEvent) => {
 </div>
 
                   <div className="col-span-1">
-                    <label className="block text-xs font-bold text-text/50 uppercase">Contact Number:</label>
+                    <label className="block text-xs font-bold text-text/50 uppercase dark:text-primary/70">Contact Number:</label>
                     <input 
                       type="text" 
                       readOnly 
