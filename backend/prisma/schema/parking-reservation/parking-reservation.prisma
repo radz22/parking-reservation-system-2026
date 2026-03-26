@@ -1,0 +1,20 @@
+model ParkingReservation {
+  id         String            @id @default(uuid())
+  slotId     String
+  vehicleId  String
+  userId     String          
+
+  startTime  DateTime
+  endTime    DateTime?
+  status     ReservationStatus @default(RESERVED)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  slot       ParkingSlot @relation(fields: [slotId], references: [id])
+  vehicle    Vehicle     @relation(fields: [vehicleId], references: [id])
+  user       User        @relation(fields: [userId], references: [id]) 
+
+}
+
+

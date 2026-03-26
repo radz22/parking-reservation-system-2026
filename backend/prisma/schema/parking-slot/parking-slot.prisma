@@ -1,0 +1,11 @@
+model ParkingSlot {
+  id           String   @id @default(uuid())
+  slotNumber   String   @unique
+  vehicleType  VehicleType
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  reservations ParkingReservation[]
+}
+

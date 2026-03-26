@@ -14,3 +14,15 @@ generator typescriptInterfaces {
 datasource db {
   provider = "postgresql"
 }
+enum ReservationStatus {
+  RESERVED
+  OCCUPIED
+  COMPLETED
+  CANCELLED
+}
+
+
+enum VehicleType {
+  TWO_WHEEL
+  FOUR_WHEEL
+}
