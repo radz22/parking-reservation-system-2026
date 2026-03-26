@@ -1,0 +1,8 @@
+model Vehicle {
+  id           String       @id @default(uuid())
+  plateNumber  String       @unique
+  type         VehicleType
+  createdAt    DateTime     @default(now())
+
+  reservations ParkingReservation[]
+}
