@@ -10,20 +10,6 @@ export interface RegisterRequest {
   role?: Role;
 }
 
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface TokenPayload {
-  id: string;
-  email: string;
-  username: string;
-  role: Role;
-}
-
-
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
@@ -36,4 +22,3 @@ export interface UserResponse {
   username: string;
   role: Role;
 }
-

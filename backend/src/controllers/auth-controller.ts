@@ -8,12 +8,13 @@ export const signup = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { email, password, username, role } = req.body;
-    const user = await register({ email, password, username, role });
+    const { username, email, password, contact, plateNumber, wheelType, role } = req.body;
+    const user = await register({ username, email, password, contact, plateNumber, wheelType, role });
     if (!user) {
       throw new CustomError('Failed to register', 500);
     }
     res.status(201).json(user);
+
   } catch (error) {
     next(error);
   }
@@ -72,6 +73,7 @@ export const getMe = async (
       username: req.user.username,
       role: req.user.role,
     });
+
   } catch (error) {
     next(error);
   }

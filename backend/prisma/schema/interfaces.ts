@@ -34,9 +34,11 @@ export interface ParkingSlot {
 
 export interface User {
   id: string;
-  email: string;
   username: string;
+  email: string;
   password: string;
+  contact: string;
+  plateNumber: string | null;
   role: Role;
   createdAt: Date;
   updatedAt: Date;

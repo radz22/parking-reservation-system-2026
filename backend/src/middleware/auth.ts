@@ -9,6 +9,7 @@ export interface AuthenticatedUser {
   role: string;
 }
 
+
 declare global {
   namespace Express {
     interface Request {
@@ -43,6 +44,7 @@ export const authenticate = async (
       username: decoded.username,
       role: decoded.role,
     };
+
 
     next();
   } catch (error) {

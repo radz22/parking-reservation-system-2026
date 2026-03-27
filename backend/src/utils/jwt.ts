@@ -33,6 +33,7 @@ export const generateTokens = (
     aud: 'mobile-app',
   };
 
+
   const accessToken = jwt.sign(
     {
       ...basePayload,

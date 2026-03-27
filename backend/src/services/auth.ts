@@ -6,7 +6,7 @@ import { CustomError } from '@/utils/custom-error';
 import { generateTokens, verifyRefreshToken } from '@/utils/jwt';
 
 export const register = async (req: RegisterRequest) => {
-  const { email, password, username, role } = req;
+  const { username, email, password, contact, plateNumber, role } = req;
   const hashedPassword = await hashText(password);
   
   const existingUser = await prisma.user.findUnique({
@@ -17,19 +17,22 @@ export const register = async (req: RegisterRequest) => {
     throw new CustomError('User already exists', 400);
   }
 
-  const prismaRole = role.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
+  const prismaRole = role && role.toUpperCase() === 'ADMIN' ? 'ADMIN' : 'USER';
 
   const user = await prisma.user.create({
     data: { 
+      username,
       email, 
-      username, 
       password: hashedPassword, 
+      contact,
+      plateNumber,
       role: prismaRole 
     },
   });
 
   return user;
 };
+
 
 export const login = async (req: LoginRequest) => {
   const { email, password } = req;
@@ -54,7 +57,7 @@ export const login = async (req: LoginRequest) => {
   const { accessToken, refreshToken } = generateTokens(
     user.id,
     user.email,
-    user.username,
+    user.username!,
     user.role
   );
 
@@ -69,6 +72,7 @@ export const login = async (req: LoginRequest) => {
     }
   };
 };
+
 
 
 export const refreshAccessToken = async (refreshToken: string) => {
@@ -86,12 +90,16 @@ export const refreshAccessToken = async (refreshToken: string) => {
     const tokens = generateTokens(
       user.id,
       user.email,
-      user.username,
+      user.username!,
       user.role
     );
 
+
     return tokens;
   } catch (error) {
+    if (error instanceof CustomError) {
+      throw error;
+    }
     throw new CustomError('Invalid or expired refresh token', 401);
   }
 };
