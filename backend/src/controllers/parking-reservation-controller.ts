@@ -1,0 +1,54 @@
+import { Request, Response, NextFunction } from 'express';
+import { ParkingReservationService } from '@/services/parking-reservation-service';
+
+export class ParkingReservationController {
+  static async findAll(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { page, limit, search, userId, status } = req.query;
+      const result = await ParkingReservationService.findAll({
+        page: page ? Number(page) : undefined,
+        limit: limit ? Number(limit) : undefined,
+        search: search as string,
+        userId: userId as string,
+        status: status as any,
+      });
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  static async findById(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await ParkingReservationService.findById(id);
+      if (!result) {
+        return res.status(404).json({ message: 'Reservation not found' });
+      }
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  static async delete(req: Request, res: Response, next: NextFunction) {
+   try {
+     const { id } = req.params;
+     await ParkingReservationService.delete(id);
+     return res.status(204).send();
+   } catch (error) {
+     return next(error);
+   }
+  }
+
+  static async complete(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { totalPrice } = req.body;
+      const result = await ParkingReservationService.completeReservation(id, totalPrice);
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+}

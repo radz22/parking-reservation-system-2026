@@ -7,6 +7,7 @@ import authRouter from '@/routes/auth-route';
 import userRouter from '@/routes/user-route';
 import adminRouter from '@/routes/admin-route';
 import parkingSlotRouter from '@/routes/parking-slot-route';
+import parkingReservationRouter from '@/routes/parking-reservation-route';
 
 const app = express();
 const port = Number(process.env.PORT) || 5000;
@@ -27,6 +28,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/user', userRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/parking-slots', parkingSlotRouter);
+app.use('/api/parking-reservations', parkingReservationRouter);
 
 app.use(errorHandler);
 

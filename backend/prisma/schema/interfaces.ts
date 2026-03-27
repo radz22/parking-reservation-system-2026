@@ -14,6 +14,7 @@ export interface ParkingReservation {
   startTime: Date;
   endTime: Date | null;
   status: ReservationStatus;
+  totalPrice: number | null;
   createdAt: Date;
   updatedAt: Date;
   slot?: ParkingSlot;
