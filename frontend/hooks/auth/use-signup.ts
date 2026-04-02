@@ -13,8 +13,10 @@ export const useSignup = () => {
       toast.success('Account created successfully! Please sign in.');
       router.push('/sign-in');
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to create account. Please try again.';
+    onError: (error: unknown) => {
+      const message =
+        (error as Error).message ||
+        'Failed to create account. Please try again.';
       toast.error(message);
     },
   });

@@ -1,10 +1,22 @@
 import axios from 'axios';
+import { getSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-export default api;
+apiClient.interceptors.request.use(async (config) => {
+  const session: Session | null = await getSession();
+
+  if (session?.user?.accessToken) {
+    config.headers.Authorization = `Bearer ${session.user.accessToken}`;
+  }
+
+  return config;
+});
+
+export default apiClient;

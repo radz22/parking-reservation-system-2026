@@ -1,10 +1,19 @@
-import { SignInPage } from "@/components/home/sign-in"; 
+import { SignInPage } from '@/components/home/sign-in';
+import { authOptions } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function Page() {
+export default async function Page() {
+  const session = await getServerSession(authOptions);
+
+  if (session) {
+    redirect('/');
+  }
+
   return (
-    
-   
-     <SignInPage></SignInPage>
-   
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInPage />
+    </Suspense>
   );
 }

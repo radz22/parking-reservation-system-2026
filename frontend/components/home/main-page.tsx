@@ -1,6 +1,5 @@
 'use client';
-import { useState, useRef} from 'react';
-import { Navigation } from './navigation';
+import { useState, useRef } from 'react';
 import { Footer } from './footer';
 
 import useEmblaCarousel from 'embla-carousel-react';
@@ -21,11 +20,10 @@ import {
   CircleCheckBig,
   Info,
   ShieldPlus,
-  Calendars
-
+  Calendars,
 } from 'lucide-react';
 import Image from 'next/image';
-
+import { Navigation } from './navigation';
 const faqData = [
   {
     q: 'What is Parking Hub?',
@@ -53,11 +51,11 @@ const faqData = [
   },
   {
     q: 'How can I report outdated information?',
-    a: "You can report discrepancies via email or by contacting our support team directly.",
+    a: 'You can report discrepancies via email or by contacting our support team directly.',
   },
   {
     q: 'What devices is Parking Hub available on?',
-    a: "Parking Hub is fully responsive and accessible via any web browser on smartphones, tablets, and desktop computers.",
+    a: 'Parking Hub is fully responsive and accessible via any web browser on smartphones, tablets, and desktop computers.',
   },
   {
     q: 'What are the future plans for Parking Hub?',
@@ -118,13 +116,19 @@ const showcaseImages = [
 export const MainPage = () => {
   const [activeStep, setActiveStep] = useState(1);
 
-// 1. REFS FIRST (Initialize Autoplay Plugins)
-  const autoplayShow = useRef(Autoplay({ delay: 3000, stopOnInteraction: false }));
-  const autoplayTeam = useRef(Autoplay({ delay: 2500, stopOnInteraction: false }));
+  const autoplayShow = useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: false }),
+  );
+  const autoplayTeam = useRef(
+    Autoplay({ delay: 2500, stopOnInteraction: false }),
+  );
 
-  // 2. EMBLA HOOKS SECOND (Pass the refs in the second argument array)
-  const [emblaRefShow, emblaApiShow] = useEmblaCarousel({ loop: true }, [autoplayShow.current]);
-  const [emblaRefTeam, emblaApiTeam] = useEmblaCarousel({ loop: true }, [autoplayTeam.current]);
+  const [emblaRefShow, emblaApiShow] = useEmblaCarousel({ loop: true }, [
+    autoplayShow.current,
+  ]);
+  const [emblaRefTeam, emblaApiTeam] = useEmblaCarousel({ loop: true }, [
+    autoplayTeam.current,
+  ]);
 
   const scrollPrevShow = () => emblaApiShow && emblaApiShow.scrollPrev();
   const scrollNextShow = () => emblaApiShow && emblaApiShow.scrollNext();
@@ -135,7 +139,6 @@ export const MainPage = () => {
   return (
     <div className="bg-body min-h-screen bg primary dark:bg-black border border-dark/10 dark:border-white/10">
       <Navigation />
-
       <section
         id="main-header"
         className="mx-4 py-35 md:py-60 flex flex-col lg:flex-row items-center justify-between gap-12 max-w-7xl md:mx-auto"
@@ -163,22 +166,23 @@ export const MainPage = () => {
             </a>
           </div>
         </div>
-        <div className="w-full lg:w-1/2 relative h-105"> {/* Add 'relative' and a defined height */}
- <Image
-  src="/img/image.png"
-  alt="parking"
-  width={800}    
-  height={600}   
-  className="rounded-3xl shadow-lg w-full h-105 object-cover"
-/>
-</div>
+        <div className="w-full lg:w-1/2 relative h-105">
+          {' '}
+          <Image
+            src="/img/image.png"
+            alt="parking"
+            width={800}
+            height={600}
+            className="rounded-3xl shadow-lg w-full h-105 object-cover"
+          />
+        </div>
       </section>
 
       <section id="banner-1" className="mb-20">
         <div className="bg-secondary py-20 md:rounded-2xl lg: container-1 dark:bg-[#121212]">
           <div className="flex flex-col gap-3 items-center lg:mx-20">
             <h1 className="text-4xl font-semibold mb-5 text-primary text-center">
-              {"Parking Made Simple. Reservation Made Smart."}
+              {'Parking Made Simple. Reservation Made Smart.'}
             </h1>
             <p className="text-lg text-center text-primary">
               Experience a seamless parking journey. Find, reserve, and secure
@@ -198,7 +202,9 @@ export const MainPage = () => {
 
       <section id="features" className=" mx-auto px-6 py-16">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white">Features</h2>
+          <h2 className="text-4xl font-bold text-slate-900 dark:text-white">
+            Features
+          </h2>
           <p className="text-gray-500 mt-2 text-lg dark:text-white">
             Everything you need to make your parking experience a breeze.
           </p>
@@ -209,7 +215,7 @@ export const MainPage = () => {
             <div className="flex gap-4 mb-8">
               <div className="bg-white p-4 rounded-2xl shadow-sm flex-1 border border-gray-100 group-hover:border-blue-300 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
-                 <Car></Car>
+                  <Car></Car>
                   <span className="font-bold text-slate-800">4 Wheels</span>
                 </div>
                 <div className="text-3xl font-black text-slate-900">10</div>
@@ -220,7 +226,7 @@ export const MainPage = () => {
               </div>
               <div className="bg-white p-4 rounded-2xl shadow-sm flex-1 border border-gray-100 group-hover:border-blue-300 transition-colors">
                 <div className="flex items-center gap-2 mb-2">
-              <Motorbike></Motorbike>
+                  <Motorbike></Motorbike>
                   <span className="font-bold text-slate-800">2 Wheels</span>
                 </div>
                 <div className="text-3xl font-black text-slate-900">1</div>
@@ -253,9 +259,11 @@ export const MainPage = () => {
               Receive parking lot updates
             </h3>
             <p className="text-gray-500 text-lg leading-relaxed">
-              {"Has the parking lot rental price increased? Is it closed today?"}
+              {
+                'Has the parking lot rental price increased? Is it closed today?'
+              }
               {" You don't need to ask anymore because you can receive updates"}
-              {"directly from them."}
+              {'directly from them.'}
             </p>
             <p className="text-base italic text-gray-400 mt-4 font-light">
               Only available for Partner Users
@@ -329,7 +337,10 @@ export const MainPage = () => {
         </div>
       </section>
 
-      <section id="how-it-works" className="mx-auto px-6 py-20 bg-[#f8fbff] bg primary dark:bg-black">
+      <section
+        id="how-it-works"
+        className="mx-auto px-6 py-20 bg-[#f8fbff] bg primary dark:bg-black"
+      >
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-slate-900 mb-4 dark:text-white">
             How it works
@@ -375,76 +386,80 @@ export const MainPage = () => {
 
           {/* Image Display */}
           <div className="w-full lg:w-1/2 hidden md:flex justify-center relative h-125">
-  <Image
-    src={`/img/mobile-step/mobile-step-${activeStep}.png`}
-    alt="Steps"
-    height={100}
-    width={250}
-    sizes="(max-width: 768px) 100vw, 100vw"
-    className="rounded-[2.5rem] shadow-2xl object-cover"
-  />
-</div>
+            <Image
+              src={`/img/mobile-step/mobile-step-${activeStep}.png`}
+              alt="Steps"
+              height={100}
+              width={250}
+              sizes="(max-width: 768px) 100vw, 100vw"
+              className="rounded-[2.5rem] shadow-2xl object-cover"
+            />
+          </div>
         </div>
       </section>
 
       <section id="about-sys" className="container-1 mx-auto px-6 py-16 ">
-  <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border dark:bg-[#121212] dark:border-slate-800">
-    <div className="text-center mb-12">
-      <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">
-        About Parking Hub
-      </h2>
-      <div className="w-16 h-1 bg-red-500 mx-auto mt-3 rounded-full dark:text-white"></div>
-    </div>
+        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border dark:bg-[#121212] dark:border-slate-800">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">
+              About Parking Hub
+            </h2>
+            <div className="w-16 h-1 bg-red-500 mx-auto mt-3 rounded-full dark:text-white"></div>
+          </div>
 
-    <div className="grid md:grid-cols-2 gap-12">
-      {/* Our Mission Section */}
-      <div className="pl-6 border-l-4 border-red-500">
-        <div className="flex items-center gap-3 mb-4">
-          <Target className="text-red-500" />
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white">Our Mission</h3>
-        </div>
-        <p className="text-gray-600 leading-relaxed dark:text-white">
-          To provide Filipino drivers with the most convenient parking
-          experience at affordable rates, delivered through smart
-          technology and real-time updates. We believe that every journey
-          starts with a stress-free parking spot.
-        </p>
-      </div>
+          <div className="grid md:grid-cols-2 gap-12">
+            {/* Our Mission Section */}
+            <div className="pl-6 border-l-4 border-red-500">
+              <div className="flex items-center gap-3 mb-4">
+                <Target className="text-red-500" />
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+                  Our Mission
+                </h3>
+              </div>
+              <p className="text-gray-600 leading-relaxed dark:text-white">
+                To provide Filipino drivers with the most convenient parking
+                experience at affordable rates, delivered through smart
+                technology and real-time updates. We believe that every journey
+                starts with a stress-free parking spot.
+              </p>
+            </div>
 
-      {/* Why Choose Us Section */}
-      <div className="pl-6 border-l-4 border-red-500">
-        <div className="flex items-center gap-3 mb-4">
-          <Sparkles className="text-blue-500" />
-          <h3 className="text-xl font-bold text-slate-800 dark:text-white">Why Choose Us?</h3>
+            {/* Why Choose Us Section */}
+            <div className="pl-6 border-l-4 border-red-500">
+              <div className="flex items-center gap-3 mb-4">
+                <Sparkles className="text-blue-500" />
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">
+                  Why Choose Us?
+                </h3>
+              </div>
+              <ul className="space-y-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
+                <li className="flex items-center text-gray-600 text-base dark:text-white">
+                  <CircleCheckBig className="mr-2 h-4 w-4 text-green-500 shrink-0" />
+                  100% Real-time slots
+                </li>
+                <li className="flex items-center text-gray-600 text-base dark:text-white">
+                  <Calendars className="mr-2 h-4 w-4 text-green-500 shrink-0" />
+                  Instant booking
+                </li>
+                <li className="flex items-center text-gray-600 text-base dark:text-white">
+                  <ShieldPlus className="mr-2 h-4 w-4 text-green-500 shrink-0" />
+                  Competitive rates
+                </li>
+                <li className="flex items-center text-gray-600 text-base dark:text-white">
+                  <Info className="mr-2 h-4 w-4 text-green-500 shrink-0" />
+                  24/7 support
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-        <ul className="space-y-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4">
-          <li className="flex items-center text-gray-600 text-base dark:text-white">
-            <CircleCheckBig className="mr-2 h-4 w-4 text-green-500 shrink-0" />
-            100% Real-time slots
-          </li>
-          <li className="flex items-center text-gray-600 text-base dark:text-white">
-           <Calendars className="mr-2 h-4 w-4 text-green-500 shrink-0" />
-            Instant booking
-          </li>
-          <li className="flex items-center text-gray-600 text-base dark:text-white">
-         <ShieldPlus className="mr-2 h-4 w-4 text-green-500 shrink-0" />
-            Competitive rates
-          </li>
-          <li className="flex items-center text-gray-600 text-base dark:text-white">
-            <Info className="mr-2 h-4 w-4 text-green-500 shrink-0" />
-            24/7 support
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
+      </section>
 
       <section id="story" className="container-1 mx-auto px-6 pb-20">
         <div className="bg-white rounded-3xl shadow-xl p-8 md:p-16 border dark:bg-[#121212] text-center dark:border-slate-800">
           <div className="flex flex-col items-center mb-8">
             <div className="flex items-center gap-3">
-            <BookOpenText size={35}></BookOpenText>
+              <BookOpenText size={35}></BookOpenText>
               <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white">
                 Our Story
               </h2>
@@ -454,8 +469,8 @@ export const MainPage = () => {
 
           <div className="max-w-5xl mx-auto space-y-6 text-gray-600 text-lg leading-relaxed text-left md:text-center dark:text-white">
             <p>
-              Established in 2026, {"Parking Hub"} began with a simple vision: to
-              make urban navigation and parking accessible to every Filipino
+              Established in 2026, {'Parking Hub'} began with a simple vision:
+              to make urban navigation and parking accessible to every Filipino
               driver. What started as a small project to solve city congestion
               has grown into a trusted platform, serving thousands of commuters
               daily.
@@ -474,7 +489,9 @@ export const MainPage = () => {
 
       <section id="services" className="mb-20 container-1">
         <div className="">
-          <h1 className="text-center font-semibold text-3xl mb-10 dark:text-white">Services</h1>
+          <h1 className="text-center font-semibold text-3xl mb-10 dark:text-white">
+            Services
+          </h1>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:max-w-7xl mx-auto">
             <div className="service-card dark:bg-[#121212]">
@@ -489,7 +506,7 @@ export const MainPage = () => {
                   Real-time Availability
                 </h1>
                 <p className="text-center dark:text-white">
-                 {" Don't "}waste time circling around. Our system instantly
+                  {" Don't "}waste time circling around. Our system instantly
                   displays all available parking slots in real-time, helping you
                   find the perfect spot the moment you arrive.
                 </p>
@@ -521,7 +538,9 @@ export const MainPage = () => {
                   size={25}
                   strokeWidth={3}
                 />
-                <h1 className="text-3xl font-semibold dark:text-white">Safe & Organized</h1>
+                <h1 className="text-3xl font-semibold dark:text-white">
+                  Safe & Organized
+                </h1>
                 <p className="text-center dark:text-white">
                   Rest easy knowing your parking experience is managed
                   professionally. We provide a structured system that monitors
@@ -542,68 +561,89 @@ export const MainPage = () => {
             <h1 className="text-center font-semibold text-text text-4xl dark:text-white">
               About Us
             </h1>
-            <h3>{"Built for the Community, by the Student"}</h3>
+            <h3>{'Built for the Community, by the Student'}</h3>
             <p className="text-center">
-              {"Developed to solve the common parking challenges faced by our"}
+              {'Developed to solve the common parking challenges faced by our'}
               fellow students and staff, this system is more than just a
-              reservation tool, it &rsquo;s  a commitment to a more organized campus. We
-              are dedicated to creating a system that values your time, ensures
-              {"fairness, and makes every arrival a stress-free experience."}
+              reservation tool, it &rsquo;s a commitment to a more organized
+              campus. We are dedicated to creating a system that values your
+              time, ensures
+              {'fairness, and makes every arrival a stress-free experience.'}
             </p>
           </div>
-           </div>
+        </div>
 
         <div className="relative group">
           <div className="overflow-hidden" ref={emblaRefTeam}>
             <div className="flex">
               {personData.map(({ img, name, role }, index) => (
-                <div key={index} className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] px-4">
+                <div
+                  key={index}
+                  className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] px-4"
+                >
                   <div className="p-8 bg-white rounded-3xl shadow-md border border-gray-100 flex flex-col items-center h-full dark:bg-[#121212] dark:border-white/10">
                     <div className="relative h-44 w-44 mb-6">
-                      <Image src={img} fill className="object-cover rounded-full border-4 border-white shadow-lg" alt={name} />
+                      <Image
+                        src={img}
+                        fill
+                        className="object-cover rounded-full border-4 border-white shadow-lg"
+                        alt={name}
+                      />
                     </div>
-                    <h3 className="font-bold text-center text-slate-800 dark:text-white">{name}</h3>
-                    <p className="text-xs text-center text-gray-500 mt-3">{role}</p>
+                    <h3 className="font-bold text-center text-slate-800 dark:text-white">
+                      {name}
+                    </h3>
+                    <p className="text-xs text-center text-gray-500 mt-3">
+                      {role}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <button onClick={scrollPrevTeam} className="absolute -left-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg z-10"><ChevronLeft /></button>
-          <button onClick={scrollNextTeam} className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg z-10"><ChevronRight /></button>
+          <button
+            onClick={scrollPrevTeam}
+            className="absolute -left-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg z-10"
+          >
+            <ChevronLeft />
+          </button>
+          <button
+            onClick={scrollNextTeam}
+            className="absolute -right-4 top-1/2 -translate-y-1/2 bg-white p-3 rounded-full shadow-lg z-10"
+          >
+            <ChevronRight />
+          </button>
         </div>
 
- <div className="my-10 flex flex-col gap-6 md:flex-row">
-            <div className="service-card flex flex-col gap-6 items-center dark:bg-[#121212]">
-              <h1 className="text-xl font-semibold dark:text-white">
+        <div className="my-10 flex flex-col gap-6 md:flex-row">
+          <div className="service-card flex flex-col gap-6 items-center dark:bg-[#121212]">
+            <h1 className="text-xl font-semibold dark:text-white">
               &ldquo;Smart Parking, Streamlined. &rdquo;
-              </h1>
-              <p className="text-center text-base dark:text-white">
-                &ldquo;Innovation meets convenience. Our parking reservation system is
-                designed with cutting-edge technology to provide real-time
-                updates and effortless management. We are pushing for a future
-                where parking is no longer a hurdle, but a standard part of a
-                well-organized, efficient, and tech-driven campus life.&rdquo;
-              </p>
-            </div>
-
-            <div className="service-card flex flex-col gap-6 items-center dark:bg-[#121212]">
-              <h1 className="text-xl font-semibold dark:text-white">
-                &ldquo;Redefining Campus Mobility.&rdquo;
-              </h1>
-              <p className="text-center text-base dark:text-white">
-                &ldquo;We believe that your day {"shouldn't"} start with the stress of
-                searching for a parking spot. Our mission is to transform the
-                traditional parking experience into a modern, seamless, and
-                digital-first journey. By bridging the gap between drivers and
-                available spaces, we empower our community to save time and move
-                with confidence.&rdquo;
-              </p>
-            </div>
+            </h1>
+            <p className="text-center text-base dark:text-white">
+              &ldquo;Innovation meets convenience. Our parking reservation
+              system is designed with cutting-edge technology to provide
+              real-time updates and effortless management. We are pushing for a
+              future where parking is no longer a hurdle, but a standard part of
+              a well-organized, efficient, and tech-driven campus life.&rdquo;
+            </p>
           </div>
 
+          <div className="service-card flex flex-col gap-6 items-center dark:bg-[#121212]">
+            <h1 className="text-xl font-semibold dark:text-white">
+              &ldquo;Redefining Campus Mobility.&rdquo;
+            </h1>
+            <p className="text-center text-base dark:text-white">
+              &ldquo;We believe that your day {"shouldn't"} start with the
+              stress of searching for a parking spot. Our mission is to
+              transform the traditional parking experience into a modern,
+              seamless, and digital-first journey. By bridging the gap between
+              drivers and available spaces, we empower our community to save
+              time and move with confidence.&rdquo;
+            </p>
+          </div>
+        </div>
       </section>
-
 
       <section id="FAQ" className="container mx-auto px-6 pt-20">
         <div className="text-center mb-16 dark:bg-[#0a0a0a]">
@@ -611,8 +651,8 @@ export const MainPage = () => {
             Frequently asked questions
           </h2>
           <p className="text-gray-500 text-lg">
-            If you {"can't"} find what you are looking for {"don't"} hesitate to contact
-            us.
+            If you {"can't"} find what you are looking for {"don't"} hesitate to
+            contact us.
           </p>
         </div>
 
@@ -631,50 +671,58 @@ export const MainPage = () => {
             </details>
           ))}
         </div>
-
-
-
       </section>
 
-     <section id="project-showcase" className="my-20">
-  <div className="container-1">
-    <div className="my-10 flex flex-col gap-2">
-      <h3 className="text-center text-3xl font-semibold dark:text-white">Showcase</h3>
-      <p className="text-center text-base text-text dark:text-white">
-        Some of the User Interfaces inside the whole system.
-      </p>
-    </div>
+      <section id="project-showcase" className="my-20">
+        <div className="container-1">
+          <div className="my-10 flex flex-col gap-2">
+            <h3 className="text-center text-3xl font-semibold dark:text-white">
+              Showcase
+            </h3>
+            <p className="text-center text-base text-text dark:text-white">
+              Some of the User Interfaces inside the whole system.
+            </p>
+          </div>
 
-    <div className="relative group max-w-5xl mx-auto">
-      <div
-        className="overflow-hidden rounded-[2rem] shadow-2xl bg-white border border-gray-100 dark:bg-[#121212] dark:border-white/10"
-        ref={emblaRefShow}
-      >
-        <div className="flex">
-          {showcaseImages.map((item, index) => (
-            <div key={index} className="flex-[0_0_100%] relative h-87.5 md:h-150">
-              <Image
-                src={item.src}
-                alt={item.title}
-                fill
-                className="object-contain p-4 md:p-8"
-                priority={index === 0}
-              />
+          <div className="relative group max-w-5xl mx-auto">
+            <div
+              className="overflow-hidden rounded-[2rem] shadow-2xl bg-white border border-gray-100 dark:bg-[#121212] dark:border-white/10"
+              ref={emblaRefShow}
+            >
+              <div className="flex">
+                {showcaseImages.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex-[0_0_100%] relative h-87.5 md:h-150"
+                  >
+                    <Image
+                      src={item.src}
+                      alt={item.title}
+                      fill
+                      className="object-contain p-4 md:p-8"
+                      priority={index === 0}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+
+            <button
+              onClick={scrollPrevShow}
+              className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-2xl transition-all opacity-0 group-hover:opacity-100 z-10"
+            >
+              <ChevronLeft size={30} />
+            </button>
+
+            <button
+              onClick={scrollNextShow}
+              className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-2xl transition-all opacity-0 group-hover:opacity-100 z-10"
+            >
+              <ChevronRight size={30} />
+            </button>
+          </div>
         </div>
-      </div>
-
-      <button onClick={scrollPrevShow} className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-2xl transition-all opacity-0 group-hover:opacity-100 z-10">
-        <ChevronLeft size={30}/>
-      </button>
-
-      <button onClick={scrollNextShow} className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 p-4 rounded-full shadow-2xl transition-all opacity-0 group-hover:opacity-100 z-10">
-        <ChevronRight size={30}/>
-      </button>
-    </div>
-  </div>
-</section>
+      </section>
 
       <Footer></Footer>
     </div>

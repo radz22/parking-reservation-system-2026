@@ -1,7 +1,5 @@
-import {MainPage} from "./main-page";
+import { MainPage } from './main-page';
 
 export const HomeComponent = () => {
-  return (
-        <MainPage/>  
-  );
+  return <MainPage />;
 };
