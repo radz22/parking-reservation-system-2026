@@ -1,29 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { LoginSchemaType } from '@/schemas/login-schema';
-import {
-  ADMIN_LOGIN_REDIRECT,
-  LOGIN_REDIRECT,
-  SECRETARY_LOGIN_REDIRECT,
-} from '@/config/route';
-
-function getRoleBasedRedirect(role: string): string {
-  const roleMap: Record<string, string> = {
-    ADMIN: ADMIN_LOGIN_REDIRECT,
-    SECRETARY: SECRETARY_LOGIN_REDIRECT,
-    USER: LOGIN_REDIRECT,
-  };
-  return roleMap[role.toUpperCase()] || LOGIN_REDIRECT;
-}
 
 type SignInResult = { success: boolean; message?: string };
 
-const useAuth = () => {
+const ADMIN_ROLE = 'ADMIN';
+
+const useAdminAuth = () => {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -46,49 +33,55 @@ const useAuth = () => {
         throw new Error(
           result.error === 'CredentialsSignin'
             ? 'Wrong email or password.'
-            : result.error
+            : result.error,
         );
       }
 
-      if (result?.ok) {
-        // Fetch session to get User Role
-        const sessionResponse = await fetch('/api/auth/session');
-        const session = await sessionResponse.json();
-
-        if (session?.user?.role) {
-          let redirectPath = getRoleBasedRedirect(session.user.role);
-
-          if (redirectParam) {
-            try {
-              const decodedRedirect = decodeURIComponent(redirectParam);
-              if (
-                decodedRedirect.startsWith('/') &&
-                !decodedRedirect.startsWith('//')
-              ) {
-                redirectPath = decodedRedirect;
-              }
-            } catch (err) {
-              console.error('Redirect URL decoding failed:', err);
-            }
-          }
-
-          setSuccess('Access Granted. Redirecting...');
-          
-          // Use router.push or window.location.href
-          // window.location.href is more reliable for a full state reset after login
-          setTimeout(() => {
-            window.location.href = redirectPath;
-          }, 1000);
-
-          return { success: true };
-        } else {
-          throw new Error('User role is undefined. Please contact support.');
-        }
-      } else {
+      if (!result?.ok) {
         throw new Error('Authentication failed. Please try again.');
       }
-    } catch (err: any) {
-      const errorMessage = err.message || 'An unexpected error occurred.';
+
+      // Fetch session to check role
+      const sessionResponse = await fetch('/api/auth/session');
+      const session = await sessionResponse.json();
+
+      if (!session?.user?.role) {
+        throw new Error('User role is undefined. Please contact support.');
+      }
+
+      if (session.user.role.toUpperCase() !== ADMIN_ROLE) {
+        throw new Error('Access denied. Admins only.');
+      }
+
+      // Determine redirect path
+      let redirectPath = '/admin/dashboard';
+      if (redirectParam) {
+        try {
+          const decodedRedirect = decodeURIComponent(redirectParam);
+          if (
+            decodedRedirect.startsWith('/') &&
+            !decodedRedirect.startsWith('//')
+          ) {
+            redirectPath = decodedRedirect;
+          }
+        } catch {
+          console.warn(
+            'Redirect URL decoding failed, using default admin path.',
+          );
+        }
+      }
+
+      setSuccess('Access Granted. Redirecting...');
+
+      // Redirect after short delay
+      setTimeout(() => {
+        window.location.href = redirectPath;
+      }, 1000);
+
+      return { success: true };
+    } catch (err: unknown) {
+      const errorMessage =
+        (err as Error).message || 'An unexpected error occurred.';
       setError(errorMessage);
       return { success: false, message: errorMessage };
     } finally {
@@ -106,4 +99,4 @@ const useAuth = () => {
   };
 };
 
-export default useAuth;
+export default useAdminAuth;
