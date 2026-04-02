@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Providers } from "@/components/providers";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,10 +31,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-       <SmoothScroll>
-          {children}
-        </SmoothScroll>
+       <Providers>
+         <SmoothScroll>
+            {children}
+          </SmoothScroll>
+        </Providers>
       </body>
     </html>
   );
 }
+

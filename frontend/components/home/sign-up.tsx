@@ -1,34 +1,46 @@
 'use client';
 
-import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSignup } from '@/hooks/auth/use-signup';
+import { Loader2 } from 'lucide-react';
+
+const signUpSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  email: z.string().email('Invalid email address'),
+  contact: z.string().min(10, 'Contact number is too short'),
+  plateNumber: z.string().optional(),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type SignUpValues = z.infer<typeof signUpSchema>;
 
 export const SignUpPage = () => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    contactNo: '',
-    plateNo: '',
-    wheelType: '2-Wheel',
-    password: '',
-    confirmPassword: '',
+  const { mutate: signup, isPending } = useSignup();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(signUpSchema),
+    
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form Submitted:', formData);
+  const onSubmit = (data: SignUpValues) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { confirmPassword, ...registerData } = data;
+    signup(registerData);
   };
 
   return (
@@ -60,7 +72,7 @@ export const SignUpPage = () => {
             <div className="absolute bottom-0 left-0 w-full p-12 z-10">
               <div className="space-y-4 max-w-md">
                 <div className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white backdrop-blur-md">
-                  🚀 Join the Hub
+                   Join the Hub
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
                   Your journey <br className="hidden lg:block"/>starts here.
@@ -86,34 +98,16 @@ export const SignUpPage = () => {
                 </p>
               </div>
 
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-gray-700 font-medium">First name</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      placeholder="John"
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-gray-700 font-medium">Last name</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl"
-                      required
-                    />
-                  </div>
+              <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+                <div className="space-y-2">
+                  <Label htmlFor="username" className="text-gray-700 font-medium">Username</Label>
+                  <Input
+                    id="username"
+                    {...register('username')}
+                    placeholder="johndoe"
+                    className={`h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl ${errors.username ? 'border-red-500' : ''}`}
+                  />
+                  {errors.username && <p className="text-xs text-red-500">{errors.username.message}</p>}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -121,93 +115,76 @@ export const SignUpPage = () => {
                     <Label htmlFor="email" className="text-gray-700 font-medium">Email address</Label>
                     <Input
                       id="email"
-                      name="email"
                       type="email"
+                      {...register('email')}
                       placeholder="name@example.com"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl"
-                      required
+                      className={`h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl ${errors.email ? 'border-red-500' : ''}`}
                     />
+                    {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="contactNo" className="text-gray-700 font-medium">Contact no.</Label>
+                    <Label htmlFor="contact" className="text-gray-700 font-medium">Contact no.</Label>
                     <Input
-                      id="contactNo"
-                      name="contactNo"
+                      id="contact"
                       type="tel"
+                      {...register('contact')}
                       placeholder="+1 (555) 000-0000"
-                      value={formData.contactNo}
-                      onChange={handleChange}
-                      className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl"
-                      required
+                      className={`h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl ${errors.contact ? 'border-red-500' : ''}`}
                     />
+                    {errors.contact && <p className="text-xs text-red-500">{errors.contact.message}</p>}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="plateNo" className="text-gray-700 font-medium">Plate no.</Label>
+                    <Label htmlFor="plateNumber" className="text-gray-700 font-medium">Plate no.</Label>
                     <Input
-                      id="plateNo"
-                      name="plateNo"
-                      type="text"
+                      id="plateNumber"
+                      {...register('plateNumber')}
                       placeholder="ABC 1234"
-                      value={formData.plateNo}
-                      onChange={handleChange}
-                      className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl text-transform: uppercase"
-                      required
+                      className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl uppercase"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="wheelType" className="text-gray-700 font-medium">Vehicle type</Label>
-                    <select
-                      id="wheelType"
-                      name="wheelType"
-                      value={formData.wheelType}
-                      onChange={handleChange}
-                      className="flex h-11 w-full rounded-xl border border-gray-200 bg-white/50 px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900/20 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
-                      required
-                    >
-                      <option value="2-Wheel">2-Wheel (Motorcycle)</option>
-                      <option value="4-Wheel">4-Wheel (Car)</option>
-                    </select>
-                  </div>
+                 
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
                   <Input
                     id="password"
-                    name="password"
                     type="password"
+                    {...register('password')}
                     placeholder="••••••••"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl"
-                    required
+                    className={`h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl ${errors.password ? 'border-red-500' : ''}`}
                   />
+                  {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">Confirm password</Label>
                   <Input
                     id="confirmPassword"
-                    name="confirmPassword"
                     type="password"
+                    {...register('confirmPassword')}
                     placeholder="••••••••"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl"
-                    required
+                    className={`h-11 bg-white/50 focus-visible:ring-gray-900/20 border-gray-200 transition-all rounded-xl ${errors.confirmPassword ? 'border-red-500' : ''}`}
                   />
+                  {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>}
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full h-12 mt-4 bg-gray-900 hover:bg-black text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all active:scale-[0.98]"
+                  disabled={isPending}
+                  className="w-full h-12 mt-4 bg-gray-900 hover:bg-black text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all active:scale-[0.98] disabled:opacity-70"
                 >
-                  Create account
+                  {isPending ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Creating account...
+                    </span>
+                  ) : (
+                    'Create account'
+                  )}
                 </Button>
               </form>
 

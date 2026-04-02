@@ -1,5 +1,10 @@
 export type Role = 'USER' | 'ADMIN';
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
 export interface RegisterRequest {
   username: string;
   email: string;
@@ -9,20 +14,6 @@ export interface RegisterRequest {
   wheelType?: string;
   role?: Role;
 }
-
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface TokenPayload {
-  id: string;
-  email: string;
-  username: string;
-  role: Role;
-}
-
 
 export interface AuthResponse {
   accessToken: string;
@@ -36,4 +27,3 @@ export interface UserResponse {
   username: string;
   role: Role;
 }
-
