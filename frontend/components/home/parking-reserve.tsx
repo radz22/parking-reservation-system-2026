@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 interface Slot {
   id: string;
   slotNumber: string;
-  status: 'available' | 'reserve' | 'occupied';
+  status: 'available' | 'pending' | 'reserve' | 'occupied';
   type: '2-wheel' | '4-wheel';
   icon: 'motorbike' | 'car';
 }
@@ -57,9 +57,11 @@ export const ParkingReservation = () => {
       if (profile?.id) {
         const reservations = await parkingReservationService.getAll({
           userId: profile.id,
-          status: 'RESERVED' as ReservationStatus,
         });
-        setHasActiveReservation(reservations.items.length > 0);
+        const activeRes = reservations.items.find((r: import('@/types/parking-reservation').ParkingReservation) => 
+          ['PENDING', 'RESERVED', 'OCCUPIED'].includes(r.status)
+        );
+        setHasActiveReservation(!!activeRes);
       }
     } catch (error) {
       console.error('Failed to fetch slots:', error);

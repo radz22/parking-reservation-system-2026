@@ -285,7 +285,7 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                             </td>
 
                             <td className="px-4 py-4 text-right text text dark:text-white">
-                              {res.status === 'RESERVED' && (
+                              {res.status === 'RESERVED' || res.status === 'PENDING' && (
                                 <button
                                   onClick={() => handleCancelClick(res.id)}
                                   className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-red-500 hover:text-white transition-all duration-300 text-xs hover:cursor-pointer"
