@@ -6,7 +6,7 @@ model ParkingReservation {
 
   startTime  DateTime
   endTime    DateTime?
-  status     ReservationStatus @default(RESERVED)
+  status     ReservationStatus @default(PENDING)
   totalPrice Float?            @default(0)
 
   createdAt  DateTime @default(now())

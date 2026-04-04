@@ -15,7 +15,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@base-ui/react';
 
 export const Navigation = () => {
-  const { data: session } = useSession(); // ✅ get session client-side
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -66,24 +66,28 @@ export const Navigation = () => {
           >
             Home
           </Link>
-          <Link
-            href="/user-dashboard"
-            className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
-          >
-            Dashboard
-          </Link>
-          <Link
-            href="/parking-reserve"
-            className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
-          >
-            Book Reservation
-          </Link>
-          <Link
-            href="/profile"
-            className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
-          >
-            Profile
-          </Link>
+          {session && (
+            <>
+              <Link
+                href="/user-dashboard"
+                className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
+              >
+                Dashboard
+              </Link>
+              <Link
+                href="/parking-reserve"
+                className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
+              >
+                Book Reservation
+              </Link>
+              <Link
+                href="/profile"
+                className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
+              >
+                Profile
+              </Link>
+            </>
+          )}
         </nav>
 
         <div className="flex justify-center items-center gap-3">
@@ -145,24 +149,28 @@ export const Navigation = () => {
                   <span>Home</span>
                 </li>
               </Link>
-              <Link href="/user-dashboard">
-                <li className="link-nav dark:text-slate-200">
-                  <LayoutDashboard size={25} strokeWidth={3} />
-                  <span>Dashboard</span>
-                </li>
-              </Link>
-              <Link href="/parking-reserve">
-                <li className="link-nav dark:text-slate-200">
-                  <BookOpen size={25} strokeWidth={3} />
-                  <span>Reservation</span>
-                </li>
-              </Link>
-              <Link href="/profile">
-                <li className="link-nav dark:text-slate-200">
-                  <SquareUserRound size={25} strokeWidth={3} />
-                  <span>User Profile</span>
-                </li>
-              </Link>
+              {session && (
+                <>
+                  <Link href="/user-dashboard">
+                    <li className="link-nav dark:text-slate-200">
+                      <LayoutDashboard size={25} strokeWidth={3} />
+                      <span>Dashboard</span>
+                    </li>
+                  </Link>
+                  <Link href="/parking-reserve">
+                    <li className="link-nav dark:text-slate-200">
+                      <BookOpen size={25} strokeWidth={3} />
+                      <span>Reservation</span>
+                    </li>
+                  </Link>
+                  <Link href="/profile">
+                    <li className="link-nav dark:text-slate-200">
+                      <SquareUserRound size={25} strokeWidth={3} />
+                      <span>User Profile</span>
+                    </li>
+                  </Link>
+                </>
+              )}
             </ul>
 
             <Link

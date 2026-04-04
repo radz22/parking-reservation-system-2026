@@ -15,6 +15,7 @@ datasource db {
   provider = "postgresql"
 }
 enum ReservationStatus {
+  PENDING
   RESERVED
   OCCUPIED
   COMPLETED

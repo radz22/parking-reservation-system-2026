@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { CreateParkingSlotInput, UpdateParkingSlotInput } from '@/types/parking-slot';
 import { PaginationParams } from '@/types/panigation-type';
@@ -32,7 +33,7 @@ export class ParkingSlotService {
     const { page = 1, limit = 10, search = '' } = params;
     const skip = (page - 1) * limit;
 
-    const where = search
+    const where: Prisma.ParkingSlotWhereInput = search
       ? {
           OR: [
             {
@@ -44,6 +45,7 @@ export class ParkingSlotService {
           ],
         }
       : {};
+
 
     const [items, total] = await Promise.all([
       prisma.parkingSlot.findMany({
