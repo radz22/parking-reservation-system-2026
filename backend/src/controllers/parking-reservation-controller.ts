@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { ReservationStatus } from '@prisma/client';
 import { ParkingReservationService } from '@/services/parking-reservation-service';
 
 export class ParkingReservationController {
@@ -10,8 +11,9 @@ export class ParkingReservationController {
         limit: limit ? Number(limit) : undefined,
         search: search as string,
         userId: userId as string,
-        status: status as any,
+        status: status as ReservationStatus,
       });
+
       return res.status(200).json(result);
     } catch (error) {
       return next(error);
@@ -46,6 +48,25 @@ export class ParkingReservationController {
       const { id } = req.params;
       const { totalPrice } = req.body;
       const result = await ParkingReservationService.completeReservation(id, totalPrice);
+      return res.status(200).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  static async create(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await ParkingReservationService.create(req.body);
+      return res.status(201).json(result);
+    } catch (error) {
+      return next(error);
+    }
+  }
+
+  static async cancel(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await ParkingReservationService.cancel(id);
       return res.status(200).json(result);
     } catch (error) {
       return next(error);
