@@ -116,7 +116,9 @@ export class ParkingReservationService {
     const activeReservation = await prisma.parkingReservation.findFirst({
       where: {
         userId: data.userId,
-        status: 'RESERVED'
+        status: {
+          in: ['PENDING', 'RESERVED', 'OCCUPIED'],
+        },
       }
     });
 
@@ -147,7 +149,7 @@ export class ParkingReservationService {
           vehicleId: vehicle.id,
           startTime: data.startTime,
           endTime: data.endTime,
-          status: 'RESERVED'
+          status: 'PENDING'
         },
         include: {
           slot: true,
@@ -174,8 +176,8 @@ export class ParkingReservationService {
       throw new Error('Reservation not found');
     }
 
-    if (reservation.status !== 'RESERVED') {
-      throw new Error('Only RESERVED reservations can be cancelled');
+    if (reservation.status !== 'RESERVED' && reservation.status !== 'PENDING') {
+      throw new Error('Only PENDING or RESERVED reservations can be cancelled');
     }
 
     return prisma.$transaction(async (tx) => {
