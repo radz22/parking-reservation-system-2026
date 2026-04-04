@@ -1,9 +1,17 @@
 'use client';
+
 import { Navigation } from './navigation';
 import Link from 'next/link';
-import { useState } from 'react';
-import { Globe, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Globe, AlertTriangle, Loader2 } from 'lucide-react';
 import { useProfile } from '@/hooks/use-profile';
+import { parkingReservationService } from '@/services/parking-reservation-service';
+import { parkingSlotService } from '@/services/parking-slot-service';
+import { ParkingReservation } from '@/types/parking-reservation';
+import { ParkingSlot } from '@/types/parking-slot';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,25 +23,108 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+interface Reservation {
+  id: string;
+  plateNumber: string;
+  slotNumber: string;
+  vehicleType: string;
+  startTime: string;
+  endTime: string | null;
+  status: string;
+}
+
 export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
   const [isCancelModalOpen, setCancelModalOpen] = useState(false);
-  const { profile } = useProfile();
-  const [accountReservation, setAccountReservation] = useState([
-    {
-      id: 1,
-      first_name: 'John',
-      last_name: 'Doe',
-      plate_no: 'ABC123',
-      wheel_type: '2-Wheel',
-      start: 'Feb 14, 2026 8:00am',
-      end: 'Feb 14, 2026 11:30am',
-    },
-  ]);
+  const [selectedReservationId, setSelectedReservationId] = useState<
+    string | null
+  >(null);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [stats, setStats] = useState({
+    totalActivity: 0,
+    totalAvailable: 0,
+    available2Wheels: 0,
+    available4Wheels: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const handleCancel = () => {
-    setAccountReservation([]);
-    setCancelModalOpen(false);
-    alert('Reservation cancelled successfully!');
+  const { profile } = useProfile();
+
+  const fetchData = useCallback(async () => {
+    if (!profile?.id) return;
+
+    try {
+      setLoading(true);
+
+      const resData = await parkingReservationService.getAll({
+        userId: profile.id,
+        limit: 50,
+      });
+
+      const mappedReservations: Reservation[] = resData.items.map(
+        (r: ParkingReservation) => ({
+          id: r.id,
+          plateNumber: r.vehicle?.plateNumber || 'N/A',
+          slotNumber: r.slot?.slotNumber || 'N/A',
+          vehicleType:
+            r.slot?.vehicleType === 'TWO_WHEEL' ? '2-wheel' : '4-wheel',
+          startTime: r.startTime,
+          endTime: r.endTime || null,
+          status: r.status,
+        }),
+      );
+
+      setReservations(mappedReservations);
+
+      // Fetch all slots for stats
+      const slotsData = await parkingSlotService.getAll({ limit: 100 });
+      const items = slotsData.items;
+
+      setStats({
+        totalActivity: resData.pagination.total,
+        totalAvailable: items.filter((s: ParkingSlot) => s.isAvailable).length,
+        available2Wheels: items.filter(
+          (s: ParkingSlot) => s.isAvailable && s.vehicleType === 'TWO_WHEEL',
+        ).length,
+        available4Wheels: items.filter(
+          (s: ParkingSlot) => s.isAvailable && s.vehicleType === 'FOUR_WHEEL',
+        ).length,
+      });
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  }, [profile?.id]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleCancelClick = (id: string) => {
+    setSelectedReservationId(id);
+    setCancelModalOpen(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!selectedReservationId) return;
+
+    try {
+      setIsCancelling(true);
+      await parkingReservationService.cancel(selectedReservationId);
+      toast.success('Reservation cancelled successfully!');
+      setCancelModalOpen(false);
+      fetchData(); // Refresh data
+    } catch (error: unknown) {
+      console.error('Cancellation failed:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to cancel reservation';
+      toast.error(errorMessage);
+    } finally {
+      setIsCancelling(false);
+      setSelectedReservationId(null);
+    }
   };
 
   return (
@@ -72,9 +163,8 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                     <i className="fa-solid fa-parking text-secondary"></i>
                   </div>
                   <h2 className="text-3xl font-bold text-text my-3 text text dark:text-white">
-                    <span>12</span>
+                    <span>{loading ? '...' : stats.totalActivity}</span>
                   </h2>
-                  <p className="text-xs text-green-500 font-medium"></p>
                 </div>
 
                 <div className="dashboard-boxes dark:bg-[#121212]">
@@ -85,11 +175,8 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                     <i className="fa-solid fa-check text-secondary"></i>
                   </div>
                   <h2 className="text-3xl font-bold text-text my-3 text text dark:text-white">
-                    <span>6</span>
+                    <span>{loading ? '...' : stats.totalAvailable}</span>
                   </h2>
-                  <p className="text-xs text-green-500 font-medium">
-                    +1 Available since last week
-                  </p>
                 </div>
 
                 <div className="dashboard-boxes dark:bg-[#121212]">
@@ -100,9 +187,8 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                     <i className="fa-solid fa-motorcycle text-secondary"></i>
                   </div>
                   <h2 className="text-3xl font-bold text-text my-3 text text dark:text-white">
-                    <span>2</span>
+                    <span>{loading ? '...' : stats.available2Wheels}</span>
                   </h2>
-                  <p className="text-xs text-green-500 font-medium"></p>
                 </div>
 
                 <div className="dashboard-boxes dark:bg-[#121212]">
@@ -113,11 +199,8 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                     <i className="fa-solid fa-car text-secondary"></i>
                   </div>
                   <h2 className="text-3xl font-bold text-text my-3 dark:text-white">
-                    <span>4</span>
+                    <span>{loading ? '...' : stats.available4Wheels}</span>
                   </h2>
-                  <p className="text-xs text-green-500 font-medium">
-                    +1 Available since last week
-                  </p>
                 </div>
               </div>
             </div>
@@ -129,91 +212,103 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
           <div className="bg-primary dark:bg-[#121212] h-fit py-20 transition-colors duration-300">
             <div className="md:max-w-7xl md:mx-auto">
               <h1 className="font-semibold text-text text-2xl text-center md:text-start text text dark:text-white">
-                Your Reservation:
+                Your Reservations:
               </h1>
 
               <div className="mt-10 overflow-x-auto  container-1 ">
-                <table className="w-full text-left border-separate border-spacing-y-2">
-                  <thead>
-                    <tr className="text-text/50 font-bold uppercase text-xs tracking-wider">
-                      <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white">
-                        Name
-                      </th>
-                      <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white">
-                        Vehicle
-                      </th>
-                      <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
-                        Wheel Type:
-                      </th>
-                      <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
-                        Start Time
-                      </th>
-                      <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
-                        End Time
-                      </th>
-                      <th className="px-4 py-3 border-b border-gray-100 text-right text text dark:text-white whitespace-nowrap">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
+                {loading ? (
+                  <div className="flex justify-center items-center py-10">
+                    <Loader2
+                      className="animate-spin text-secondary"
+                      size={32}
+                    />
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-separate border-spacing-y-2">
+                    <thead>
+                      <tr className="text-text/50 font-bold uppercase text-xs tracking-wider">
+                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white">
+                          Slot
+                        </th>
+                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white">
+                          Vehicle
+                        </th>
+                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
+                          Type
+                        </th>
+                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
+                          Date
+                        </th>
+                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="px-4 py-3 border-b border-gray-100 text-right text text dark:text-white whitespace-nowrap">
+                          Action
+                        </th>
+                      </tr>
+                    </thead>
 
-                  <tbody className="text-text font-semibold text-sm">
-                    {accountReservation.length > 0 ? (
-                      accountReservation.map(
-                        ({
-                          id,
-                          first_name,
-                          last_name,
-                          plate_no,
-                          wheel_type,
-                          start,
-                          end,
-                        }) => (
+                    <tbody className="text-text font-semibold text-sm">
+                      {reservations.length > 0 ? (
+                        reservations.map((res) => (
                           <tr
-                            key={id}
+                            key={res.id}
                             className="hover:bg-dark/10 rounded-4xl transition-colors duration-200 text text dark:text-white"
                           >
                             <td className="px-4 py-4 whitespace-nowrap">
-                              {first_name} {last_name}
+                              {res.slotNumber}
                             </td>
                             <td className="px-4 py-4 uppercase whitespace-nowrap">
-                              {plate_no}
+                              {res.plateNumber}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
-                              {wheel_type}
+                              {res.vehicleType}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
-                              {start}
+                              {format(
+                                new Date(res.startTime),
+                                'MMM dd, yyyy p',
+                              )}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
-                              {end}
+                              <span
+                                className={`px-3 py-1 rounded-full text-xs ${
+                                  res.status === 'RESERVED'
+                                    ? 'bg-yellow-100 text-yellow-600'
+                                    : res.status === 'COMPLETED'
+                                      ? 'bg-green-100 text-green-600'
+                                      : 'bg-red-100 text-red-600'
+                                }`}
+                              >
+                                {res.status}
+                              </span>
                             </td>
 
                             <td className="px-4 py-4 text-right text text dark:text-white">
-                              {/* Cancel Button */}
-                              <button
-                                onClick={() => setCancelModalOpen(true)} // Buksan ang modal
-                                className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-red-500 hover:text-white transition-all duration-300 text-xs hover:cursor-pointer"
-                              >
-                                {' '}
-                                Cancel
-                              </button>
+                              {res.status === 'RESERVED' && (
+                                <button
+                                  onClick={() => handleCancelClick(res.id)}
+                                  className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-red-500 hover:text-white transition-all duration-300 text-xs hover:cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              )}
                             </td>
                           </tr>
-                        ),
-                      )
-                    ) : (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="text-center py-10 text-text/40 italic"
-                        >
-                          No active reservations found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                        ))
+                      ) : (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            className="text-center py-10 text-text/40 italic"
+                          >
+                            No active reservations found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           </div>
@@ -238,9 +333,13 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
           <AlertDialogFooter className="flex flex-col gap-3 mt-6 sm:flex-col">
             <div className="flex flex-col gap-3 md:flex-row">
               <AlertDialogAction
-                onClick={handleCancel}
+                disabled={isCancelling}
+                onClick={handleCancelConfirm}
                 className="w-full md:w-55 py-6 bg-red-500 text-primary rounded-xl font-semibold  transition-all hover:bg-secondary duration-300 ease-out "
               >
+                {isCancelling ? (
+                  <Loader2 className="animate-spin mr-2" size={20} />
+                ) : null}
                 Yes, Cancel
               </AlertDialogAction>
 
