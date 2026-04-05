@@ -11,7 +11,9 @@ import { ParkingReservation } from '@/types/parking-reservation';
 import { ParkingSlot } from '@/types/parking-slot';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {QRCodeSVG} from 'qrcode.react';
+import { Loading } from '../loading/loading';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +40,9 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
   const [selectedReservationId, setSelectedReservationId] = useState<
     string | null
   >(null);
+  const [isOpenQrCode, setIsOpenQrCode] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [isLoadingQrCode, setIsLoadingQrCode] = useState(false);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [stats, setStats] = useState({
     totalActivity: 0,
@@ -115,7 +120,7 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
       await parkingReservationService.cancel(selectedReservationId);
       toast.success('Reservation cancelled successfully!');
       setCancelModalOpen(false);
-      fetchData(); // Refresh data
+      fetchData(); 
     } catch (error: unknown) {
       console.error('Cancellation failed:', error);
       const errorMessage =
@@ -127,8 +132,22 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
     }
   };
 
+const handleQrCodeClick = async (id: string) => {
+  setIsOpenQrCode(true);
+  setIsLoadingQrCode(true);
+
+  try {
+    const { qrCode } = await parkingReservationService.getById(id); 
+    setQrCode(qrCode);
+  } catch (err) {
+    toast.error('Failed to load QR code');
+    setQrCode('');
+  } finally {
+    setIsLoadingQrCode(false);
+  }
+};
   return (
-    <div className="dashboard-container dark:bg-[#0a0a0a] transition-all">
+    <div className="dashboard-container dark:bg-[#0a0a0a] transition-all w-full">
       <Navigation />
       {children}
       <main id="main-section" className="p-5 lg:px-20">
@@ -224,7 +243,7 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                     />
                   </div>
                 ) : (
-                  <table className="w-full text-left border-separate border-spacing-y-2">
+                  <table className="w-full text-center   border-separate border-spacing-y-2">
                     <thead>
                       <tr className="text-text/50 font-bold uppercase text-xs tracking-wider">
                         <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white">
@@ -284,15 +303,26 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                               </span>
                             </td>
 
-                            <td className="px-4 py-4 text-right text text dark:text-white">
-                              {res.status === 'RESERVED' || res.status === 'PENDING' && (
-                                <button
-                                  onClick={() => handleCancelClick(res.id)}
-                                  className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-red-500 hover:text-white transition-all duration-300 text-xs hover:cursor-pointer"
-                                >
-                                  Cancel
-                                </button>
-                              )}
+                           
+                            
+                           <td className="px-4 py-4">
+  {(res.status === 'RESERVED' || res.status === 'PENDING') && (
+    <div className="flex justify-end gap-2">
+      <button
+        onClick={() => handleCancelClick(res.id)}
+        className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-red-500 hover:text-white transition-all duration-300 text-xs cursor-pointer"
+      >
+        Cancel
+      </button>
+
+      <button
+        onClick={() => handleQrCodeClick(res.id)}
+        className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-blue-500 hover:text-white transition-all duration-300 text-xs cursor-pointer"
+      >
+        QR CODE
+      </button>
+    </div>
+  )}
                             </td>
                           </tr>
                         ))
@@ -350,6 +380,20 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+     <Dialog open={isOpenQrCode} onOpenChange={setIsOpenQrCode}>
+  <DialogContent className="bg-primary rounded-3xl p-8 border-none flex items-center justify-center">
+    {isLoadingQrCode ? (
+      <Loading />
+    ) : (
+      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md flex items-center justify-center">
+        <div className="bg-white p-4 rounded-2xl w-full flex justify-center">
+          <QRCodeSVG value={qrCode} className="w-full h-auto" /> 
+        </div>
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
     </div>
   );
 };

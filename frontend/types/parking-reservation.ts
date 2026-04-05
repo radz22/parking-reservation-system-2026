@@ -47,6 +47,9 @@ export interface CreateParkingReservationInput {
   userId: string;
   slotId: string;
   plateNumber: string;
-  startTime: Date;
-  endTime?: Date;
+}
+
+export interface QrCodeResponse {
+  qrCode: string;
+  data: ParkingReservation;
 }
