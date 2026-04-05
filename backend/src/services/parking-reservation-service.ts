@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ParkingReservationFilter } from '@/types/parking-reservation';
-
+import { generateQrCodeToken } from '@/utils/jwt';
 export class ParkingReservationService {
   static async findAll(params: ParkingReservationFilter) {
     const { page = 1, limit = 10, search = '', userId, status } = params;
@@ -82,7 +82,8 @@ export class ParkingReservationService {
   }
 
   static async findById(id: string) {
-    return prisma.parkingReservation.findUnique({
+
+    const findUserReserve = await prisma.parkingReservation.findUnique({
       where: { id },
       include: {
         user: true,
@@ -90,16 +91,25 @@ export class ParkingReservationService {
         vehicle: true,
       },
     });
-  }
 
+    if (!findUserReserve) {
+      throw new Error('Reservation not found');
+    }
+  const qrCodeToken = generateQrCodeToken(findUserReserve.id, findUserReserve.slotId);
+
+    return {
+      qrCode:qrCodeToken.qrCode,
+      data:findUserReserve
+      };
+  }
+  
   static async delete(id: string) {
      return prisma.parkingReservation.delete({
         where: { id }
      })
   }
 
-  static async create(data: { userId: string; slotId: string; plateNumber: string; startTime: Date; endTime?: Date }) {
-    // 1. Check if the slot is available
+  static async create(data: { userId: string; slotId: string; plateNumber: string }) {
     const slot = await prisma.parkingSlot.findUnique({
       where: { id: data.slotId }
     });
@@ -112,7 +122,6 @@ export class ParkingReservationService {
       throw new Error('Parking slot is not available');
     }
 
-    // 2. Check if user already has an active reservation
     const activeReservation = await prisma.parkingReservation.findFirst({
       where: {
         userId: data.userId,
@@ -126,7 +135,6 @@ export class ParkingReservationService {
       throw new Error('User already has an active reservation');
     }
 
-    // 3. Ensure vehicle exists
     let vehicle = await prisma.vehicle.findUnique({
       where: { plateNumber: data.plateNumber }
     });
@@ -135,20 +143,17 @@ export class ParkingReservationService {
       vehicle = await prisma.vehicle.create({
         data: {
           plateNumber: data.plateNumber,
-          type: slot.vehicleType, // Assume vehicle type matches slot type for initial creation
+          type: slot.vehicleType,
         }
       });
     }
 
-    // 4. Create reservation and update slot availability in a transaction
     return prisma.$transaction(async (tx) => {
       const reservation = await tx.parkingReservation.create({
         data: {
           userId: data.userId,
           slotId: data.slotId,
           vehicleId: vehicle.id,
-          startTime: data.startTime,
-          endTime: data.endTime,
           status: 'PENDING'
         },
         include: {
@@ -195,7 +200,6 @@ export class ParkingReservationService {
     });
   }
 
-  // Add a method to mark as completed and set totalPrice
   static async completeReservation(id: string, totalPrice: number) {
     const reservation = await prisma.parkingReservation.findUnique({
       where: { id }

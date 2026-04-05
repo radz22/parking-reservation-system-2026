@@ -2,8 +2,9 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_ACCESS_SECRET;
 const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const QR_SECRET = process.env.JWT_QR_SECRET;
 
-if (!JWT_SECRET || !REFRESH_SECRET) {
+if (!JWT_SECRET || !REFRESH_SECRET || !QR_SECRET) {
   throw new Error('JWT secrets must be defined in environment variables');
 }
 
@@ -12,6 +13,15 @@ interface TokenPayload {
   email: string;
   username: string;
   role: string;
+  iss?: string;
+  aud?: string;
+  iat?: number;
+  exp?: number;
+}
+
+interface QrCodePayload {
+  id: string;
+  slotId: string;
   iss?: string;
   aud?: string;
   iat?: number;
@@ -30,7 +40,7 @@ export const generateTokens = (
     username,
     role,
     iss: 'auth-service',
-    aud: 'mobile-app',
+    aud: 'auth-app',
   };
 
 
@@ -41,15 +51,15 @@ export const generateTokens = (
     },
     JWT_SECRET,
     {
-      expiresIn: '15m', // Corrected time format (15mins → 15m)
-      algorithm: 'HS256', // Explicit algorithm selection
+      expiresIn: '15m',
+      algorithm: 'HS256', 
     }
   );
 
   const refreshToken = jwt.sign(
     {
       ...basePayload,
-      tokenType: 'refresh', // Explicit token type
+      tokenType: 'refresh',
     },
     REFRESH_SECRET,
     {
@@ -58,9 +68,35 @@ export const generateTokens = (
     }
   );
 
-  return { accessToken, refreshToken };
+
+  return { accessToken, refreshToken};
 };
 
+export const generateQrCodeToken = (
+  id: string,
+  slotId: string
+): { qrCode: string } => {
+  const payload: QrCodePayload = {
+    id,
+    slotId,
+    iss: 'qr-service',
+    aud: 'qr-code',
+  };
+
+  const qrCode = jwt.sign(
+    {
+      ...payload,
+      tokenType: 'qr-access',
+    },
+    QR_SECRET!,
+    {
+      expiresIn: '3h',
+      algorithm: 'HS256',
+    }
+  );
+
+return {qrCode};
+};
 export const verifyAccessToken = (token: string): TokenPayload => {
   return jwt.verify(token, JWT_SECRET, {
     algorithms: ['HS256'],
@@ -72,3 +108,9 @@ export const verifyRefreshToken = (token: string): TokenPayload => {
     algorithms: ['HS256'],
   }) as TokenPayload;
 };
+
+export const verifyQrCodeToken = (token: string): QrCodePayload => {
+  return jwt.verify(token, QR_SECRET!, {
+    algorithms: ['HS256'],
+  }) as QrCodePayload;
+};  
