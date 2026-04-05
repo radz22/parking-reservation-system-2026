@@ -34,20 +34,23 @@ export class ParkingReservationController {
   }
 
   static async delete(req: Request, res: Response, next: NextFunction) {
-   try {
-     const { id } = req.params;
-     await ParkingReservationService.delete(id);
-     return res.status(204).send();
-   } catch (error) {
-     return next(error);
-   }
+    try {
+      const { id } = req.params;
+      await ParkingReservationService.delete(id);
+      return res.status(204).send();
+    } catch (error) {
+      return next(error);
+    }
   }
 
   static async complete(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const { totalPrice } = req.body;
-      const result = await ParkingReservationService.completeReservation(id, totalPrice);
+      const result = await ParkingReservationService.completeReservation(
+        id,
+        totalPrice,
+      );
       return res.status(200).json(result);
     } catch (error) {
       return next(error);
@@ -70,6 +73,24 @@ export class ParkingReservationController {
       return res.status(200).json(result);
     } catch (error) {
       return next(error);
+    }
+  }
+
+  static async scan(req: Request, res: Response) {
+    try {
+      const { token, mode } = req.body;
+      if (!token || !mode) {
+        return res
+          .status(400)
+          .json({ success: false, message: 'Missing token or mode' });
+      }
+      const result = await ParkingReservationService.scanQrToken(token, mode);
+      return res.status(200).json(result);
+    } catch (error: any) {
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'QR Scan failed',
+      });
     }
   }
 }
