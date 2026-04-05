@@ -3,6 +3,7 @@ import {
   ParkingReservation,
   ParkingReservationFilter,
   CreateParkingReservationInput,
+  QrCodeResponse,
 } from '@/types/parking-reservation';
 import { Pagination } from '@/types/panigation';
 
@@ -16,7 +17,7 @@ export const parkingReservationService = {
     return response.data;
   },
 
-  async getById(id: string): Promise<ParkingReservation> {
+  async getById(id: string): Promise<QrCodeResponse> {
     const response = await apiClient.get(`/api/parking-reservations/${id}`);
     return response.data;
   },

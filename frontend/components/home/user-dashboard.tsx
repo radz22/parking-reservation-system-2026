@@ -11,7 +11,14 @@ import { ParkingReservation } from '@/types/parking-reservation';
 import { ParkingSlot } from '@/types/parking-slot';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { QRCodeSVG } from 'qrcode.react';
+import { Loading } from '../loading/loading';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,6 +45,9 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
   const [selectedReservationId, setSelectedReservationId] = useState<
     string | null
   >(null);
+  const [isOpenQrCode, setIsOpenQrCode] = useState(false);
+  const [qrCode, setQrCode] = useState('');
+  const [isLoadingQrCode, setIsLoadingQrCode] = useState(false);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [stats, setStats] = useState({
     totalActivity: 0,
@@ -115,7 +125,7 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
       await parkingReservationService.cancel(selectedReservationId);
       toast.success('Reservation cancelled successfully!');
       setCancelModalOpen(false);
-      fetchData(); // Refresh data
+      fetchData();
     } catch (error: unknown) {
       console.error('Cancellation failed:', error);
       const errorMessage =
@@ -127,8 +137,22 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
     }
   };
 
+  const handleQrCodeClick = async (id: string) => {
+    setIsOpenQrCode(true);
+    setIsLoadingQrCode(true);
+
+    try {
+      const { qrCode } = await parkingReservationService.getById(id);
+      setQrCode(qrCode);
+    } catch (err) {
+      toast.error('Failed to load QR code');
+      setQrCode('');
+    } finally {
+      setIsLoadingQrCode(false);
+    }
+  };
   return (
-    <div className="dashboard-container dark:bg-[#0a0a0a] transition-all">
+    <div className="dashboard-container dark:bg-[#0a0a0a] transition-all w-full">
       <Navigation />
       {children}
       <main id="main-section" className="p-5 lg:px-20">
@@ -208,14 +232,14 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
         </div>
       </main>
       <section id="reservation-info">
-        <div id="reservation-table" className="mt-20 max-w-8xl mx-auto ">
+        <div id="reservation-table" className="mt-20 max-w-8xl mx-auto">
           <div className="bg-primary dark:bg-[#121212] h-fit py-20 transition-colors duration-300">
-            <div className="md:max-w-7xl md:mx-auto">
-              <h1 className="font-semibold text-text text-2xl text-center md:text-start text text dark:text-white">
+            <div className="md:max-w-7xl md:mx-auto px-4">
+              <h1 className="font-semibold text-text text-2xl text-center md:text-start dark:text-white">
                 Your Reservations:
               </h1>
 
-              <div className="mt-10 overflow-x-auto  container-1 ">
+              <div className="mt-10 overflow-x-auto">
                 {loading ? (
                   <div className="flex justify-center items-center py-10">
                     <Loader2
@@ -224,25 +248,28 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                     />
                   </div>
                 ) : (
-                  <table className="w-full text-left border-separate border-spacing-y-2">
+                  <table className="min-w-full text-center table-auto border-collapse">
                     <thead>
                       <tr className="text-text/50 font-bold uppercase text-xs tracking-wider">
-                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white">
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
                           Slot
                         </th>
-                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white">
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
                           Vehicle
                         </th>
-                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
                           Type
                         </th>
-                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
-                          Date
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
+                          IN
                         </th>
-                        <th className="px-4 py-3 border-b border-gray-100 text text dark:text-white whitespace-nowrap">
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
+                          OUT
+                        </th>
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
                           Status
                         </th>
-                        <th className="px-4 py-3 border-b border-gray-100 text-right text text dark:text-white whitespace-nowrap">
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white text-right">
                           Action
                         </th>
                       </tr>
@@ -253,7 +280,7 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                         reservations.map((res) => (
                           <tr
                             key={res.id}
-                            className="hover:bg-dark/10 rounded-4xl transition-colors duration-200 text text dark:text-white"
+                            className="hover:bg-dark/10 transition-colors duration-200 dark:text-white"
                           >
                             <td className="px-4 py-4 whitespace-nowrap">
                               {res.slotNumber}
@@ -265,33 +292,55 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                               {res.vehicleType}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
-                              {format(
-                                new Date(res.startTime),
-                                'MMM dd, yyyy p',
-                              )}
+                              {res.startTime
+                                ? format(
+                                    new Date(res.startTime),
+                                    'MMM dd, yyyy p',
+                                  )
+                                : '-'}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              {res.endTime
+                                ? format(
+                                    new Date(res.endTime),
+                                    'MMM dd, yyyy p',
+                                  )
+                                : '-'}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">
                               <span
-                                className={`px-3 py-1 rounded-full text-xs ${
-                                  res.status === 'RESERVED'
+                                className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                  res.status === 'RESERVED' ||
+                                  res.status === 'PENDING'
                                     ? 'bg-yellow-100 text-yellow-600'
                                     : res.status === 'COMPLETED'
                                       ? 'bg-green-100 text-green-600'
-                                      : 'bg-red-100 text-red-600'
+                                      : res.status === 'OCCUPIED'
+                                        ? 'bg-blue-100 text-blue-600'
+                                        : 'bg-red-100 text-red-600'
                                 }`}
                               >
                                 {res.status}
                               </span>
                             </td>
+                            <td className="px-4 py-4">
+                              {(res.status === 'RESERVED' ||
+                                res.status === 'PENDING') && (
+                                <div className="flex justify-end gap-2 flex-wrap">
+                                  <button
+                                    onClick={() => handleCancelClick(res.id)}
+                                    className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-red-500 hover:text-white transition-all duration-300 text-xs"
+                                  >
+                                    Cancel
+                                  </button>
 
-                            <td className="px-4 py-4 text-right text text dark:text-white">
-                              {res.status === 'RESERVED' || res.status === 'PENDING' && (
-                                <button
-                                  onClick={() => handleCancelClick(res.id)}
-                                  className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-red-500 hover:text-white transition-all duration-300 text-xs hover:cursor-pointer"
-                                >
-                                  Cancel
-                                </button>
+                                  <button
+                                    onClick={() => handleQrCodeClick(res.id)}
+                                    className="bg-gray-200 text-text px-6 py-1.5 rounded-full font-bold hover:bg-blue-500 hover:text-white transition-all duration-300 text-xs"
+                                  >
+                                    QR CODE
+                                  </button>
+                                </div>
                               )}
                             </td>
                           </tr>
@@ -299,7 +348,7 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                       ) : (
                         <tr>
                           <td
-                            colSpan={6}
+                            colSpan={7}
                             className="text-center py-10 text-text/40 italic"
                           >
                             No active reservations found.
@@ -350,6 +399,20 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={isOpenQrCode} onOpenChange={setIsOpenQrCode}>
+        <DialogContent className="bg-primary rounded-3xl p-8 border-none flex items-center justify-center">
+          {isLoadingQrCode ? (
+            <Loading />
+          ) : (
+            <div className="w-full max-w-xs sm:max-w-sm md:max-w-md flex items-center justify-center">
+              <div className="bg-white p-4 rounded-2xl w-full flex justify-center">
+                <QRCodeSVG value={qrCode} className="w-full h-auto" />
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
