@@ -10,7 +10,8 @@ import {
   Menu,
   X,
   Car,
-  History
+  QrCode,
+  History,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/parking-slot', label: 'Parking Slot', icon: Car },
   { href: '/admin/history', label: 'History', icon: History },
+  { href: '/admin/qr-scanning', label: 'QR Scanning', icon: QrCode },
 ];
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -49,7 +51,9 @@ export function AdminSidebar() {
             className="rounded-lg"
           /> */}
           <div>
-            <h1 className="font-bold text-gray-900 text-lg">Parking Reservation</h1>
+            <h1 className="font-bold text-gray-900 text-lg">
+              Parking Reservation
+            </h1>
             <p className="text-xs text-gray-500">Admin Portal</p>
           </div>
         </Link>

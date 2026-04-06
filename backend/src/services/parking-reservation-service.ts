@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ParkingReservationFilter } from '@/types/parking-reservation';
-
+import { generateQrCodeToken, verifyQrCodeToken } from '@/utils/jwt';
 export class ParkingReservationService {
   static async findAll(params: ParkingReservationFilter) {
     const { page = 1, limit = 10, search = '', userId, status } = params;
@@ -9,11 +9,10 @@ export class ParkingReservationService {
 
     const where: Prisma.ParkingReservationWhereInput = {};
 
-    
     if (userId) {
       where.userId = userId;
     }
-    
+
     if (status) {
       where.status = status;
     }
@@ -82,7 +81,7 @@ export class ParkingReservationService {
   }
 
   static async findById(id: string) {
-    return prisma.parkingReservation.findUnique({
+    const findUserReserve = await prisma.parkingReservation.findUnique({
       where: { id },
       include: {
         user: true,
@@ -90,18 +89,34 @@ export class ParkingReservationService {
         vehicle: true,
       },
     });
+
+    if (!findUserReserve) {
+      throw new Error('Reservation not found');
+    }
+    const qrCodeToken = generateQrCodeToken(
+      findUserReserve.id,
+      findUserReserve.slotId,
+    );
+
+    return {
+      qrCode: qrCodeToken.qrCode,
+      data: findUserReserve,
+    };
   }
 
   static async delete(id: string) {
-     return prisma.parkingReservation.delete({
-        where: { id }
-     })
+    return prisma.parkingReservation.delete({
+      where: { id },
+    });
   }
 
-  static async create(data: { userId: string; slotId: string; plateNumber: string; startTime: Date; endTime?: Date }) {
-    // 1. Check if the slot is available
+  static async create(data: {
+    userId: string;
+    slotId: string;
+    plateNumber: string;
+  }) {
     const slot = await prisma.parkingSlot.findUnique({
-      where: { id: data.slotId }
+      where: { id: data.slotId },
     });
 
     if (!slot) {
@@ -112,55 +127,50 @@ export class ParkingReservationService {
       throw new Error('Parking slot is not available');
     }
 
-    // 2. Check if user already has an active reservation
     const activeReservation = await prisma.parkingReservation.findFirst({
       where: {
         userId: data.userId,
         status: {
           in: ['PENDING', 'RESERVED', 'OCCUPIED'],
         },
-      }
+      },
     });
 
     if (activeReservation) {
       throw new Error('User already has an active reservation');
     }
 
-    // 3. Ensure vehicle exists
     let vehicle = await prisma.vehicle.findUnique({
-      where: { plateNumber: data.plateNumber }
+      where: { plateNumber: data.plateNumber },
     });
 
     if (!vehicle) {
       vehicle = await prisma.vehicle.create({
         data: {
           plateNumber: data.plateNumber,
-          type: slot.vehicleType, // Assume vehicle type matches slot type for initial creation
-        }
+          type: slot.vehicleType,
+        },
       });
     }
 
-    // 4. Create reservation and update slot availability in a transaction
     return prisma.$transaction(async (tx) => {
       const reservation = await tx.parkingReservation.create({
         data: {
           userId: data.userId,
           slotId: data.slotId,
           vehicleId: vehicle.id,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          status: 'PENDING'
+          status: 'PENDING',
         },
         include: {
           slot: true,
           vehicle: true,
-          user: true
-        }
+          user: true,
+        },
       });
 
       await tx.parkingSlot.update({
         where: { id: data.slotId },
-        data: { isAvailable: false }
+        data: { isAvailable: false },
       });
 
       return reservation;
@@ -169,7 +179,7 @@ export class ParkingReservationService {
 
   static async cancel(id: string) {
     const reservation = await prisma.parkingReservation.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!reservation) {
@@ -183,22 +193,21 @@ export class ParkingReservationService {
     return prisma.$transaction(async (tx) => {
       const updatedReservation = await tx.parkingReservation.update({
         where: { id },
-        data: { status: 'CANCELLED' }
+        data: { status: 'CANCELLED' },
       });
 
       await tx.parkingSlot.update({
         where: { id: reservation.slotId },
-        data: { isAvailable: true }
+        data: { isAvailable: true },
       });
 
       return updatedReservation;
     });
   }
 
-  // Add a method to mark as completed and set totalPrice
   static async completeReservation(id: string, totalPrice: number) {
     const reservation = await prisma.parkingReservation.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!reservation) {
@@ -217,10 +226,116 @@ export class ParkingReservationService {
 
       await tx.parkingSlot.update({
         where: { id: reservation.slotId },
-        data: { isAvailable: true }
+        data: { isAvailable: true },
       });
 
       return updatedReservation;
+    });
+  }
+
+  static async scanQrToken(token: string, mode: 'in' | 'out') {
+    let payload;
+    try {
+      payload = verifyQrCodeToken(token);
+    } catch (e) {
+      throw new Error('Invalid or expired QR code');
+    }
+
+    const { id, slotId } = payload;
+
+    return prisma.$transaction(async (tx) => {
+      const reservation = await tx.parkingReservation.findUnique({
+        where: { id },
+        include: { slot: true, vehicle: true, user: true },
+      });
+
+      if (!reservation) {
+        throw new Error('Reservation not found');
+      }
+
+      if (mode === 'in') {
+        if (
+          reservation.status !== 'PENDING' &&
+          reservation.status !== 'RESERVED'
+        ) {
+          throw new Error(
+            `Cannot check-in. Current status is ${reservation.status}`,
+          );
+        }
+
+        const updatedReservation = await tx.parkingReservation.update({
+          where: { id },
+          data: {
+            status: 'OCCUPIED',
+            startTime: new Date(),
+          },
+          include: { slot: true, vehicle: true, user: true },
+        });
+
+        await tx.parkingSlot.update({
+          where: { id: slotId },
+          data: { isAvailable: false },
+        });
+
+        const newQrCode = generateQrCodeToken(id, slotId, '24h');
+
+        return {
+          success: true,
+          action: 'in',
+          message: 'Check-in successful',
+          reservation: updatedReservation,
+          extendedQrCode: newQrCode.qrCode,
+        };
+      } else {
+        if (reservation.status !== 'OCCUPIED') {
+          throw new Error(
+            `Cannot check-out. Current status is ${reservation.status}`,
+          );
+        }
+
+        const startTime = reservation.startTime
+          ? new Date(reservation.startTime)
+          : new Date();
+        const endTime = new Date();
+        const diffMs = endTime.getTime() - startTime.getTime();
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+        let fee = 20;
+
+        if (diffMinutes > 180) {
+          const extraMinutes = diffMinutes - 180;
+          const extraHours = Math.floor(extraMinutes / 60);
+          const remainingMins = extraMinutes % 60;
+
+          fee += extraHours * 20;
+          if (remainingMins > 0) {
+            fee += Math.ceil(remainingMins / 30) * 10;
+          }
+        }
+
+        const updatedReservation = await tx.parkingReservation.update({
+          where: { id },
+          data: {
+            status: 'COMPLETED',
+            endTime,
+            totalPrice: fee,
+          },
+          include: { slot: true, vehicle: true, user: true },
+        });
+
+        await tx.parkingSlot.update({
+          where: { id: slotId },
+          data: { isAvailable: true },
+        });
+
+        return {
+          success: true,
+          action: 'out',
+          message: 'Check-out successful',
+          fee,
+          reservation: updatedReservation,
+        };
+      }
     });
   }
 }

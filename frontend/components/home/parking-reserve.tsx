@@ -125,14 +125,13 @@ export const ParkingReservation = () => {
         userId: profile.id,
         slotId: selectedSlot.id,
         plateNumber: profile.plateNumber,
-        startTime: new Date(),
       });
 
       toast.success(
         `Slot Number ${selectedSlot.slotNumber} reserved successfully!`,
       );
       setIsModalOpen(false);
-      fetchSlots(); // Refresh slots
+      fetchSlots();
     } catch (error: unknown) {
       console.error('Reservation failed:', error);
       const errorMessage =
@@ -197,7 +196,6 @@ export const ParkingReservation = () => {
         </div>
       </section>
 
-      {/* Legend & Grid Section */}
       <section id="reserve-legend" className="mt-10">
         <div className="bg-primary dark:bg-[#121212] py-10">
           <div className="container-1 px-4 md:px-0">
@@ -289,7 +287,6 @@ export const ParkingReservation = () => {
         </div>
       </section>
 
-      {/* Reservation Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-md rounded-3xl border-none p-8 dark:bg-[#1a1a1a] dark:text-white">
           <DialogHeader>

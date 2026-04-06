@@ -11,8 +11,15 @@ parkingReservationRouter.use(authorize('USER', 'ADMIN'));
 parkingReservationRouter.get('/', ParkingReservationController.findAll);
 parkingReservationRouter.get('/:id', ParkingReservationController.findById);
 parkingReservationRouter.post('/', ParkingReservationController.create);
-parkingReservationRouter.patch('/:id/cancel', ParkingReservationController.cancel);
+parkingReservationRouter.patch(
+  '/:id/cancel',
+  ParkingReservationController.cancel,
+);
 parkingReservationRouter.delete('/:id', ParkingReservationController.delete);
-parkingReservationRouter.patch('/:id/complete', ParkingReservationController.complete);
+parkingReservationRouter.patch(
+  '/:id/complete',
+  ParkingReservationController.complete,
+);
+parkingReservationRouter.post('/scan', ParkingReservationController.scan);
 
 export default parkingReservationRouter;
