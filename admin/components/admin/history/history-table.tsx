@@ -78,6 +78,7 @@ export function HistoryTable({
               <TableHead>Plate Number</TableHead>
               <TableHead>Slot</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Reservation Time</TableHead>
               <TableHead>Start Time</TableHead>
               <TableHead>End Time</TableHead>
               <TableHead>Total Price</TableHead>
@@ -119,6 +120,11 @@ export function HistoryTable({
                     <Badge variant={getStatusVariant(res.status)}>
                       {res.status}
                     </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">
+                    {res.createdAt
+                      ? format(new Date(res.createdAt), 'MMM d, HH:mm')
+                      : 'N/A'}
                   </TableCell>
                   <TableCell className="text-sm">
                     {res.startTime
