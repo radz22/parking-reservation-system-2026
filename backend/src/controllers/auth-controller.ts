@@ -1,5 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
-import { register, login, refreshAccessToken } from '@/services/auth';
+import {
+  register,
+  login,
+  refreshAccessToken,
+  verifyOtp,
+  resendVerificationOtp,
+  forgotPassword as forgot,
+  verifyPasswordResetCode,
+  resetPassword as reset,
+} from '@/services/auth';
 import { CustomError } from '@/utils/custom-error';
 
 export const signup = async (
@@ -13,7 +22,8 @@ export const signup = async (
     if (!user) {
       throw new CustomError('Failed to register', 500);
     }
-    res.status(201).json(user);
+    const { password: _password, ...safeUser } = user;
+    res.status(201).json(safeUser);
 
   } catch (error) {
     next(error);
@@ -57,6 +67,76 @@ export const refresh = async (
   }
 };
 
+export const verify = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+    const result = await verifyOtp({ email, otp });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerification = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email } = req.body;
+    const result = await resendVerificationOtp({ email });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email } = req.body;
+    const result = await forgot({ email });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyPasswordReset = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email, otp } = req.body;
+    const result = await verifyPasswordResetCode({ email, otp });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const result = await reset({ email, otp, newPassword });
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getMe = async (
   req: Request,
   res: Response,
@@ -72,6 +152,8 @@ export const getMe = async (
       email: req.user.email,
       username: req.user.username,
       role: req.user.role,
+      isVerified: req.user.isVerified,
+      isBanned: req.user.isBanned
     });
 
   } catch (error) {

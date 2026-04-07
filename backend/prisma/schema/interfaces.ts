@@ -40,6 +40,10 @@ export interface User {
   contact: string;
   plateNumber: string | null;
   role: Role;
+  isBanned: boolean;
+  isVerified: boolean;
+  otp: string | null;
+  otpExpires: Date | null;
   createdAt: Date;
   updatedAt: Date;
   reservations?: ParkingReservation[];
