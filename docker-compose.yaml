@@ -38,6 +38,9 @@ services:
     restart: always
     env_file:
       - ./admin/.env
+    environment:
+      - PORT=3001
+      - HOSTNAME=0.0.0.0
     depends_on:
       - backend
     ports:
