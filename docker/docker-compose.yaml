@@ -1,0 +1,47 @@
+version: '3.9'
+services:
+  migrate:
+    image: radzsantillan/migrate:latest
+    container_name: parking-migrate
+    working_dir: /app
+    command: sh -c "pnpm prisma db push"
+    env_file:
+      - ./backend/.env
+    restart: 'no'
+
+  backend:
+    image: radzsantillan/backend:latest
+    container_name: backend
+    restart: always
+    env_file:
+      - ./backend/.env
+    ports:
+      - '4000:4000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    image: radzsantillan/frontend:latest
+    container_name: frontend
+    restart: always
+    env_file:
+      - ./frontend/.env
+    depends_on:
+      - backend
+    ports:
+      - '3000:3000'
+
+  admin:
+    image: radzsantillan/admin:latest
+    container_name: admin
+    restart: always
+    env_file:
+      - ./admin/.env
+    depends_on:
+      - backend
+    ports:
+      - '3001:3001'
+
+volumes:
+  pgdata:
