@@ -128,7 +128,6 @@ export function History() {
             size="sm"
             onClick={() => refresh()}
             disabled={isFetching}
-            className="rounded-xl h-10 px-4"
           >
             <RefreshCw
               className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`}
