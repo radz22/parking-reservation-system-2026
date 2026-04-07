@@ -3,7 +3,8 @@ import { getSession } from 'next-auth/react';
 import type { Session } from 'next-auth';
 
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL:
+    process.env.NEXT_PUBLIC_API_URL || 'https://api.parkingreservation.online',
   headers: {
     'Content-Type': 'application/json',
   },
