@@ -18,7 +18,7 @@ app.use(
       callback(null, origin || true);
     },
     credentials: true,
-  })
+  }),
 );
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -33,5 +33,5 @@ app.use('/api/parking-reservations', parkingReservationRouter);
 app.use(errorHandler);
 
 app.listen(port, () => {
-  console.log(`Server listening: http://localhost:${port}`);
+  console.log(`Server listenings: http://localhost:${port}`);
 });
