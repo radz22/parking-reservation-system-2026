@@ -1,6 +1,9 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { CreateParkingSlotInput, UpdateParkingSlotInput } from '@/types/parking-slot';
+import {
+  CreateParkingSlotInput,
+  UpdateParkingSlotInput,
+} from '@/types/parking-slot';
 import { PaginationParams } from '@/types/panigation-type';
 
 export class ParkingSlotService {
@@ -16,13 +19,30 @@ export class ParkingSlotService {
       data,
     });
   }
-
   static async delete(id: string) {
-    return prisma.parkingSlot.delete({
-      where: { id },
-    });
-  }
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        await tx.parkingReservation.deleteMany({
+          where: { slotId: id },
+        });
 
+        const deletedSlot = await tx.parkingSlot.delete({
+          where: { id },
+        });
+
+        return deletedSlot;
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error deleting parking slot:', error);
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to delete parking slot',
+      );
+    }
+  }
   static async findById(id: string) {
     return prisma.parkingSlot.findUnique({
       where: { id },
@@ -45,7 +65,6 @@ export class ParkingSlotService {
           ],
         }
       : {};
-
 
     const [items, total] = await Promise.all([
       prisma.parkingSlot.findMany({
