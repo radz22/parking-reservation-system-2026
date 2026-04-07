@@ -15,9 +15,9 @@ import {
 
 import { useProfile } from '@/hooks/use-profile';
 import { profileSchema, ProfileFormValues } from '@/schemas/profile-schema';
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 export const Profile = () => {
   const { profile, handleUpdateProfile, updateMutation } = useProfile();
   const [profileModalOpen, setProfileModalOpen] = useState(false);
@@ -36,6 +36,8 @@ export const Profile = () => {
   });
   const update = (data: ProfileFormValues) => {
     handleUpdateProfile(data);
+    toast.success('Profile updated successfully');
+    setProfileModalOpen(false);
   };
   return (
     <div className="bg-body min-h-screen dark:bg-text">
