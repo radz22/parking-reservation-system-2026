@@ -3,6 +3,7 @@ import {
   ParkingReservation,
   ParkingReservationFilter,
   CreateParkingReservationInput,
+  CreateParkingReservationResult,
   QrCodeResponse,
 } from '@/types/parking-reservation';
 import { Pagination } from '@/types/panigation';
@@ -24,7 +25,7 @@ export const parkingReservationService = {
 
   async create(
     data: CreateParkingReservationInput,
-  ): Promise<ParkingReservation> {
+  ): Promise<CreateParkingReservationResult> {
     const response = await apiClient.post('/api/parking-reservations', data);
     return response.data;
   },

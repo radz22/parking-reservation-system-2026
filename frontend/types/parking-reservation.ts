@@ -49,6 +49,10 @@ export interface CreateParkingReservationInput {
   plateNumber: string;
 }
 
+export interface CreateParkingReservationResult extends ParkingReservation {
+  qrCodeToken: string;
+}
+
 export interface QrCodeResponse {
   qrCode: string;
   data: ParkingReservation;

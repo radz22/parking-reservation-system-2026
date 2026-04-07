@@ -11,14 +11,9 @@ import { ParkingReservation } from '@/types/parking-reservation';
 import { ParkingSlot } from '@/types/parking-slot';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { QRCodeSVG } from 'qrcode.react';
-import { Loading } from '../loading/loading';
+import { Loading } from '@/components/loading/loading';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useRouter } from 'next/navigation';
 
 interface Reservation {
   id: string;
@@ -37,10 +33,12 @@ interface Reservation {
   vehicleType: string;
   startTime: string;
   endTime: string | null;
+  totalPrice: number | null;
   status: string;
 }
 
 export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
+  const router = useRouter();
   const [isCancelModalOpen, setCancelModalOpen] = useState(false);
   const [selectedReservationId, setSelectedReservationId] = useState<
     string | null
@@ -81,12 +79,12 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
           startTime: r.startTime,
           endTime: r.endTime || null,
           status: r.status,
+          totalPrice: r.totalPrice || null,
         }),
       );
 
       setReservations(mappedReservations);
 
-      // Fetch all slots for stats
       const slotsData = await parkingSlotService.getAll({ limit: 100 });
       const items = slotsData.items;
 
@@ -144,12 +142,15 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
     try {
       const { qrCode } = await parkingReservationService.getById(id);
       setQrCode(qrCode);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load QR code');
       setQrCode('');
     } finally {
       setIsLoadingQrCode(false);
     }
+  };
+  const handleBrowseVacantSpaces = () => {
+    router.push('/parking-reserve');
   };
   return (
     <div className="dashboard-container dark:bg-[#0a0a0a] transition-all w-full">
@@ -170,9 +171,12 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
           </div>
 
           <div className="mt-10">
-            <button className="flex items-center justify-center px-5 pr-7 py-2 bg-text rounded-4xl text-primary hover:bg-secondary duration-300 ease-out border">
+            <button
+              onClick={handleBrowseVacantSpaces}
+              className="flex items-center justify-center px-5 pr-7 py-2 bg-text rounded-4xl text-primary hover:bg-secondary duration-300 ease-out border cursor-pointer"
+            >
               <Globe size={18} strokeWidth={3} className="mr-2" />
-              <Link href="/parking-reserve">Browse Vacant Spaces</Link>
+              <span>Browse Vacant Spaces</span>
             </button>
           </div>
 
@@ -267,6 +271,9 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                           OUT
                         </th>
                         <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
+                          Total Fee
+                        </th>
+                        <th className="px-4 py-3 border-b border-gray-100 dark:text-white">
                           Status
                         </th>
                         <th className="px-4 py-3 border-b border-gray-100 dark:text-white text-right">
@@ -305,6 +312,11 @@ export const UserDashboard = ({ children }: { children?: React.ReactNode }) => {
                                     new Date(res.endTime),
                                     'MMM dd, yyyy p',
                                   )
+                                : '-'}
+                            </td>
+                            <td className="px-4 py-4 whitespace-nowrap">
+                              {res.totalPrice
+                                ? `₱${res.totalPrice.toFixed(2)}`
                                 : '-'}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap">

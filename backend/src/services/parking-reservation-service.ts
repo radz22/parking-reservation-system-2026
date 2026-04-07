@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ParkingReservationFilter } from '@/types/parking-reservation';
 import { generateQrCodeToken, verifyQrCodeToken } from '@/utils/jwt';
@@ -8,7 +9,7 @@ export class ParkingReservationService {
     const { page = 1, limit = 10, search = '', userId, status } = params;
     const skip = (page - 1) * limit;
 
-    const where: any = {};
+    const where: Prisma.ParkingReservationWhereInput = {};
 
     if (userId) {
       where.userId = userId;
@@ -24,7 +25,7 @@ export class ParkingReservationService {
           user: {
             username: {
               contains: search,
-              mode: 'insensitive',
+              mode: 'insensitive' as const,
             },
           },
         },
@@ -32,7 +33,7 @@ export class ParkingReservationService {
           vehicle: {
             plateNumber: {
               contains: search,
-              mode: 'insensitive',
+              mode: 'insensitive' as const,
             },
           },
         },
@@ -40,7 +41,7 @@ export class ParkingReservationService {
           slot: {
             slotNumber: {
               contains: search,
-              mode: 'insensitive',
+              mode: 'insensitive' as const,
             },
           },
         },
@@ -154,7 +155,7 @@ export class ParkingReservationService {
       });
     }
 
-    const result = await prisma.$transaction(async (tx: any) => {
+    const result = await prisma.$transaction(async (tx) => {
       const reservation = await tx.parkingReservation.create({
         data: {
           userId: data.userId,
@@ -174,18 +175,18 @@ export class ParkingReservationService {
         data: { isAvailable: false },
       });
 
-      // Generate QR code for the email
-      const qrCodeToken = generateQrCodeToken(reservation.id, reservation.slotId);
-      
-      // Send email notification asynchronously (don't block the transaction return, but actually it's better to do after transaction)
-      // However, since we are inside transaction, we should be careful. 
-      // I'll move it outside the transaction return.
-      
+      const qrCodeToken = generateQrCodeToken(
+        reservation.id,
+        reservation.slotId,
+      );
+
       return { reservation, qrCodeToken: qrCodeToken.qrCode };
     });
 
-    // Send email after transaction succeeds
-    const qrCodeToken = generateQrCodeToken(result.reservation.id, result.reservation.slotId);
+    const qrCodeToken = generateQrCodeToken(
+      result.reservation.id,
+      result.reservation.slotId,
+    );
     const mail = await emailService.sendReservationEmail(
       result.reservation.user.email,
       result.reservation.user.username,
@@ -193,15 +194,12 @@ export class ParkingReservationService {
       result.reservation.slot.slotNumber,
     );
     if (!mail.success) {
-      console.error(
-        'Reservation email failed:',
-        mail.error ?? 'unknown error',
-      );
+      console.error('Reservation email failed:', mail.error ?? 'unknown error');
     }
 
     return {
       ...result.reservation,
-      qrCodeToken: result.qrCodeToken
+      qrCodeToken: result.qrCodeToken,
     };
   }
 

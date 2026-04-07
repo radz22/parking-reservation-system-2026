@@ -7,8 +7,6 @@ import {
   LayoutDashboard,
   BookOpen,
   SquareUserRound,
-  SunIcon,
-  MoonIcon,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
@@ -17,12 +15,11 @@ import { Button } from '@base-ui/react';
 export const Navigation = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
+  // const toggleDarkMode = () => {
+  //   setDarkMode(!darkMode);
+  //   document.documentElement.classList.toggle('dark');
+  // };
 
   const buttonNav = () => setIsOpen(!isOpen);
 
@@ -91,12 +88,12 @@ export const Navigation = () => {
         </nav>
 
         <div className="flex justify-center items-center gap-3">
-          <button
+          {/* <button
             onClick={toggleDarkMode}
             className="p-2.5 rounded-full bg-text dark:bg-slate-800 text-primary dark:text-yellow-400 hover:scale-110 transition-all"
           >
             {darkMode ? <SunIcon size={20} /> : <MoonIcon size={20} />}
-          </button>
+          </button> */}
 
           {session ? (
             <Button
@@ -173,12 +170,14 @@ export const Navigation = () => {
               )}
             </ul>
 
-            <Link
-              href="/sign-up"
-              className="inline-flex mx-3 mt-10 py-3 px-10 bg-text text-primary text-base font-semibold rounded-2xl hover:bg-secondary hover:text-primary transition duration-300 ease-in-out"
-            >
-              Sign Up
-            </Link>
+            {!session && (
+              <Link
+                href="/sign-up"
+                className="inline-flex mx-3 mt-10 py-3 px-10 bg-text text-primary text-base font-semibold rounded-2xl hover:bg-secondary hover:text-primary transition duration-300 ease-in-out"
+              >
+                Sign Up
+              </Link>
+            )}
 
             {session && (
               <button
