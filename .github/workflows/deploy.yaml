@@ -71,8 +71,8 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: 'docker-compose.yml,nginx/nginx.conf,scripts/deploy.sh'
-          target: '/root/parking-reservation-system'
+          source: 'docker/docker-compose.yaml,scripts/deploy.sh'
+          target: '/root'
 
       - name: SSH and Deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -80,6 +80,6 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            chmod +x /root/parking-reservation-system/scripts/deploy.sh
-            sh /root/parking-reservation-system/scripts/deploy.sh
+         script: |
+            chmod +x /root/scripts/deploy.sh
+            sh /root/scripts/deploy.sh
