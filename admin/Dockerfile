@@ -21,4 +21,4 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 EXPOSE 3001
-CMD ["pnpm", "next", "start", "-p", "3001", "-H", "0.0.0.0"]
+CMD ["node", "server.js"]
