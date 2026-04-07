@@ -34,6 +34,9 @@ export const authOptions: NextAuthOptions = {
           }
 
           if (data.user && data.accessToken) {
+            if (data.user.role !== 'USER') {
+              throw new Error('Access denied. Please use the admin portal.');
+            }
             return {
               ...data.user,
               accessToken: data.accessToken,

@@ -86,10 +86,12 @@ export class ParkingReservationController {
       }
       const result = await ParkingReservationService.scanQrToken(token, mode);
       return res.status(200).json(result);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'QR scan could not be completed.';
       return res.status(400).json({
         success: false,
-        message: error.message || 'QR Scan failed',
+        message,
       });
     }
   }

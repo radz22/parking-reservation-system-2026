@@ -13,6 +13,8 @@ interface TokenPayload {
   email: string;
   username: string;
   role: string;
+  isVerified: boolean;
+  isBanned: boolean;
   iss?: string;
   aud?: string;
   iat?: number;
@@ -33,12 +35,16 @@ export const generateTokens = (
   email: string,
   username: string,
   role: string,
+  isVerified: boolean,
+  isBanned: boolean,
 ): { accessToken: string; refreshToken: string } => {
   const basePayload: TokenPayload = {
     id,
     email,
     username,
     role,
+    isVerified,
+    isBanned,
     iss: 'auth-service',
     aud: 'auth-app',
   };

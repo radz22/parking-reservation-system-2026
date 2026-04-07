@@ -56,7 +56,7 @@ export function HistoryTable({
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'COMPLETED':
-        return 'secondary'; // Using secondary for green-ish if available, or default
+        return 'secondary';
       case 'CANCELLED':
         return 'destructive';
       case 'OCCUPIED':
@@ -87,7 +87,10 @@ export function HistoryTable({
           <TableBody>
             {reservations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-gray-500">
+                <TableCell
+                  colSpan={8}
+                  className="h-24 text-center text-gray-500"
+                >
                   No reservations found.
                 </TableCell>
               </TableRow>
@@ -96,27 +99,39 @@ export function HistoryTable({
                 <TableRow key={res.id} className="hover:bg-gray-50">
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{res.user?.username || 'N/A'}</span>
-                      <span className="text-xs text-gray-500">{res.user?.email || 'N/A'}</span>
+                      <span className="font-medium">
+                        {res.user?.username || 'N/A'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {res.user?.email || 'N/A'}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{res.vehicle?.plateNumber || 'N/A'}</Badge>
+                    <Badge variant="outline">
+                      {res.vehicle?.plateNumber || 'N/A'}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="font-medium">{res.slot?.slotNumber || 'N/A'}</TableCell>
+                  <TableCell className="font-medium">
+                    {res.slot?.slotNumber || 'N/A'}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(res.status)}>
                       {res.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm">
-                    {format(new Date(res.startTime), 'MMM d, HH:mm')}
+                    {res.startTime
+                      ? format(new Date(res.startTime), 'MMM d, HH:mm')
+                      : 'Not Checked In'}
                   </TableCell>
                   <TableCell className="text-sm">
-                    {res.endTime ? format(new Date(res.endTime), 'MMM d, HH:mm') : '-'}
+                    {res.endTime
+                      ? format(new Date(res.endTime), 'MMM d, HH:mm')
+                      : '-'}
                   </TableCell>
                   <TableCell className="font-semibold text-emerald-600">
-                    {res.totalPrice ? `$${res.totalPrice.toFixed(2)}` : '-'}
+                    {res.totalPrice ? `₱${res.totalPrice.toFixed(2)}` : '-'}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -130,11 +145,14 @@ export function HistoryTable({
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        {res.status === 'RESERVED' || res.status === 'OCCUPIED' ? (
-                           <DropdownMenuItem onClick={() => handleComplete?.(res)}>
-                             <CheckCircle className="w-4 h-4 mr-2" />
-                             Mark Completed
-                           </DropdownMenuItem>
+                        {res.status === 'RESERVED' ||
+                        res.status === 'OCCUPIED' ? (
+                          <DropdownMenuItem
+                            onClick={() => handleComplete?.(res)}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Mark Completed
+                          </DropdownMenuItem>
                         ) : null}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

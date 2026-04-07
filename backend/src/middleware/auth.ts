@@ -7,6 +7,8 @@ export interface AuthenticatedUser {
   email: string;
   username: string;
   role: string;
+  isVerified: boolean;
+  isBanned: boolean;
 }
 
 
@@ -43,6 +45,8 @@ export const authenticate = async (
       email: decoded.email,
       username: decoded.username,
       role: decoded.role,
+      isVerified: decoded.isVerified,
+      isBanned: decoded.isBanned,
     };
 
 

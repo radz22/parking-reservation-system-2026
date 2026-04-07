@@ -5,6 +5,7 @@ import {
   getAdminDashboard,
   getAllUsers,
   deleteUser,
+  toggleBanUser,
 } from '@/controllers/admin-controller';
 
 const adminRouter = Router();
@@ -14,6 +15,7 @@ adminRouter.use(authorize('ADMIN'));
 
 adminRouter.get('/dashboard', getAdminDashboard);
 adminRouter.get('/users', getAllUsers);
+adminRouter.patch('/users/:userId/ban', toggleBanUser);
 adminRouter.delete('/users/:userId', deleteUser);
 
 export default adminRouter;

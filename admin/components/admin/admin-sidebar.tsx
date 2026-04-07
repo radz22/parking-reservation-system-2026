@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -12,6 +13,7 @@ import {
   Car,
   QrCode,
   History,
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { signOut } from 'next-auth/react';
@@ -22,6 +24,7 @@ const navItems = [
   { href: '/admin/parking-slot', label: 'Parking Slot', icon: Car },
   { href: '/admin/history', label: 'History', icon: History },
   { href: '/admin/qr-scanning', label: 'QR Scanning', icon: QrCode },
+  { href: '/admin/users', label: 'Users', icon: Users },
 ];
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -43,17 +46,15 @@ export function AdminSidebar() {
     <>
       <div className="p-6 border-b border-gray-100">
         <Link href="/admin/dashboard" className="flex items-center gap-3">
-          {/* <Image
-            src="/dance-result-logo.png"
-            alt="Dance Result"
+          <Image
+            src="/logo.png"
+            alt="Premium Parking"
             width={40}
             height={40}
             className="rounded-lg"
-          /> */}
+          />
           <div>
-            <h1 className="font-bold text-gray-900 text-lg">
-              Parking Reservation
-            </h1>
+            <h1 className="font-bold text-gray-900 text-lg">Premium Parking</h1>
             <p className="text-xs text-gray-500">Admin Portal</p>
           </div>
         </Link>
