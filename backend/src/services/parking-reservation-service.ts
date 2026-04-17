@@ -2,6 +2,8 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ParkingReservationFilter } from '@/types/parking-reservation';
 import { generateQrCodeToken, verifyQrCodeToken } from '@/utils/jwt';
+import { emailService } from '@/services/email-service';
+
 export class ParkingReservationService {
   static async findAll(params: ParkingReservationFilter) {
     const { page = 1, limit = 10, search = '', userId, status } = params;
@@ -23,7 +25,7 @@ export class ParkingReservationService {
           user: {
             username: {
               contains: search,
-              mode: 'insensitive',
+              mode: 'insensitive' as const,
             },
           },
         },
@@ -31,7 +33,7 @@ export class ParkingReservationService {
           vehicle: {
             plateNumber: {
               contains: search,
-              mode: 'insensitive',
+              mode: 'insensitive' as const,
             },
           },
         },
@@ -39,7 +41,7 @@ export class ParkingReservationService {
           slot: {
             slotNumber: {
               contains: search,
-              mode: 'insensitive',
+              mode: 'insensitive' as const,
             },
           },
         },
@@ -153,7 +155,7 @@ export class ParkingReservationService {
       });
     }
 
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const reservation = await tx.parkingReservation.create({
         data: {
           userId: data.userId,
@@ -173,8 +175,32 @@ export class ParkingReservationService {
         data: { isAvailable: false },
       });
 
-      return reservation;
+      const qrCodeToken = generateQrCodeToken(
+        reservation.id,
+        reservation.slotId,
+      );
+
+      return { reservation, qrCodeToken: qrCodeToken.qrCode };
     });
+
+    const qrCodeToken = generateQrCodeToken(
+      result.reservation.id,
+      result.reservation.slotId,
+    );
+    const mail = await emailService.sendReservationEmail(
+      result.reservation.user.email,
+      result.reservation.user.username,
+      qrCodeToken.qrCode,
+      result.reservation.slot.slotNumber,
+    );
+    if (!mail.success) {
+      console.error('Reservation email failed:', mail.error ?? 'unknown error');
+    }
+
+    return {
+      ...result.reservation,
+      qrCodeToken: result.qrCodeToken,
+    };
   }
 
   static async cancel(id: string) {
@@ -237,8 +263,10 @@ export class ParkingReservationService {
     let payload;
     try {
       payload = verifyQrCodeToken(token);
-    } catch (e) {
-      throw new Error('Invalid or expired QR code');
+    } catch {
+      throw new Error(
+        'This QR code is invalid or has expired. Ask the customer to open their latest parking pass.',
+      );
     }
 
     const { id, slotId } = payload;
@@ -250,7 +278,7 @@ export class ParkingReservationService {
       });
 
       if (!reservation) {
-        throw new Error('Reservation not found');
+        throw new Error('No reservation matches this QR code.');
       }
 
       if (mode === 'in') {
@@ -259,7 +287,7 @@ export class ParkingReservationService {
           reservation.status !== 'RESERVED'
         ) {
           throw new Error(
-            `Cannot check-in. Current status is ${reservation.status}`,
+            `Check-in is not possible right now (status: ${reservation.status}).`,
           );
         }
 
@@ -289,7 +317,7 @@ export class ParkingReservationService {
       } else {
         if (reservation.status !== 'OCCUPIED') {
           throw new Error(
-            `Cannot check-out. Current status is ${reservation.status}`,
+            `Check-out is not possible right now (status: ${reservation.status}).`,
           );
         }
 

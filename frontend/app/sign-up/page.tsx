@@ -3,6 +3,7 @@ import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { Suspense } from 'react';
+import { Loading } from '@/components/loading/loading';
 export default async function Page() {
   const session = await getServerSession(authOptions);
 
@@ -11,7 +12,13 @@ export default async function Page() {
   }
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loading />
+        </div>
+      }
+    >
       <SignUpPage />
     </Suspense>
   );

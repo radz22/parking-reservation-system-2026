@@ -139,6 +139,7 @@ export const MainPage = () => {
   return (
     <div className="bg-body min-h-screen bg primary dark:bg-black border border-dark/10 dark:border-white/10">
       <Navigation />
+
       <section
         id="main-header"
         className="mx-4 py-35 md:py-60 flex flex-col lg:flex-row items-center justify-between gap-12 max-w-7xl md:mx-auto"

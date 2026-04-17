@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import {
   Camera,
@@ -9,18 +9,69 @@ import {
   RefreshCw,
   LogIn,
   LogOut,
-  Banknote
+  Banknote,
 } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { isAxiosError } from 'axios';
 import apiClient from '@/lib/api-client';
+import { ParkingReservation } from '@/types/parking-reservation';
 
+function scanErrorFeedback(err: unknown): { heading: string; detail: string } {
+  if (isAxiosError(err)) {
+    const status = err.response?.status;
+    const raw =
+      typeof err.response?.data === 'object' &&
+      err.response.data &&
+      'message' in err.response.data
+        ? String((err.response.data as { message: unknown }).message).trim()
+        : '';
+
+    if (status === 401) {
+      return {
+        heading: 'Session expired',
+        detail:
+          'Your admin session has expired. Please sign in again, then return to the scanner.',
+      };
+    }
+
+    if (status === 403) {
+      return {
+        heading: 'Not allowed',
+        detail:
+          raw ||
+          'You do not have permission to process scans. Contact an administrator.',
+      };
+    }
+
+    if (raw && !raw.includes('status code')) {
+      return { heading: 'Scan not accepted', detail: raw };
+    }
+
+    return {
+      heading: 'Something went wrong',
+      detail:
+        status == null
+          ? 'Network error. Check your connection and try again.'
+          : `We could not reach the server (error ${status}). Please try again.`,
+    };
+  }
+
+  if (err instanceof Error && !err.message.includes('status code')) {
+    return { heading: 'Something went wrong', detail: err.message };
+  }
+
+  return {
+    heading: 'Something went wrong',
+    detail: 'An unexpected error occurred. Please try again.',
+  };
+}
 interface ScanResponse {
   success: boolean;
   message: string;
   action?: 'in' | 'out';
   fee?: number;
   extendedQrCode?: string;
-  reservation?: any;
+  reservation?: ParkingReservation;
 }
 
 type ScanStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -33,6 +84,7 @@ export default function EventQrScanner() {
   const [error, setError] = useState<string>('');
   const [scanMode, setScanMode] = useState<ScanMode>('in');
   const [calculatedFee, setCalculatedFee] = useState<number | null>(null);
+  const [errorHeading, setErrorHeading] = useState('Access Denied');
 
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scanModeRef = useRef<ScanMode>(scanMode);
@@ -46,10 +98,18 @@ export default function EventQrScanner() {
     statusRef.current = status;
   }, [status]);
 
-  const showFeedback = (type: ScanStatus, msg: string, fee?: number) => {
+  const showFeedback = (
+    type: ScanStatus,
+    msg: string,
+    fee?: number,
+    heading?: string,
+  ) => {
     setStatus(type);
     setFeedbackMsg(msg);
     if (fee !== undefined) setCalculatedFee(fee);
+    if (type === 'error') {
+      setErrorHeading(heading ?? 'Access Denied');
+    }
 
     if (type === 'success') {
       setTimeout(() => {
@@ -101,22 +161,32 @@ export default function EventQrScanner() {
 
       const currentMode = scanModeRef.current;
 
-      const res = await apiClient.post<ScanResponse>('/api/parking-reservations/scan', {
-        token: decodedText,
-        mode: currentMode,
-      });
+      const res = await apiClient.post<ScanResponse>(
+        '/api/parking-reservations/scan',
+        {
+          token: decodedText,
+          mode: currentMode,
+        },
+      );
 
       if (res.data.success) {
         showFeedback(
           'success',
-           res.data.message || `Vehicle ${currentMode === 'in' ? 'Checked In' : 'Checked Out'}`,
-           res.data.fee
+          res.data.message ||
+            `Vehicle ${currentMode === 'in' ? 'Checked In' : 'Checked Out'}`,
+          res.data.fee,
         );
       } else {
-        showFeedback('error', res.data.message || 'Access Not Authorized');
+        showFeedback(
+          'error',
+          res.data.message || 'This QR code could not be processed.',
+          undefined,
+          'Scan not accepted',
+        );
       }
-    } catch (err: any) {
-      showFeedback('error', err.response?.data?.message || 'Invalid or Expired QR Code');
+    } catch (err: unknown) {
+      const { heading, detail } = scanErrorFeedback(err);
+      showFeedback('error', detail, undefined, heading);
     }
   };
 
@@ -158,17 +228,21 @@ export default function EventQrScanner() {
           )}
         </div>
 
-        <Tabs value={scanMode} onValueChange={(val) => setScanMode(val as ScanMode)} className="w-full">
+        <Tabs
+          value={scanMode}
+          onValueChange={(val) => setScanMode(val as ScanMode)}
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-2 bg-slate-800">
-            <TabsTrigger 
-              value="in" 
+            <TabsTrigger
+              value="in"
               disabled={status === 'loading'}
               className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white uppercase text-xs font-bold tracking-wider"
             >
               <LogIn className="w-4 h-4 mr-2" /> Check In
             </TabsTrigger>
-            <TabsTrigger 
-              value="out" 
+            <TabsTrigger
+              value="out"
               disabled={status === 'loading'}
               className="data-[state=active]:bg-amber-600 data-[state=active]:text-white uppercase text-xs font-bold tracking-wider"
             >
@@ -214,17 +288,23 @@ export default function EventQrScanner() {
                 <h4 className="text-white font-black text-4xl uppercase tracking-tighter italic leading-none mb-2">
                   {scanMode === 'in' ? 'Checked In' : 'Checked Out'}
                 </h4>
-                <p className={`font-bold uppercase tracking-[0.2em] text-xs mb-4 ${scanMode === 'in' ? 'text-emerald-100' : 'text-amber-100'}`}>
+                <p
+                  className={`font-bold uppercase tracking-[0.2em] text-xs mb-4 ${scanMode === 'in' ? 'text-emerald-100' : 'text-amber-100'}`}
+                >
                   {feedbackMsg}
                 </p>
                 {calculatedFee !== null && (
-                   <div className="mt-4 bg-black/40 px-6 py-4 rounded-xl border border-white/20 flex flex-col items-center">
-                     <span className="text-[10px] uppercase tracking-widest text-white/70 mb-1">Total Fee</span>
-                     <div className="flex items-center gap-2 text-white">
-                        <Banknote className="w-6 h-6 text-emerald-400" />
-                        <span className="text-3xl font-black">₱{calculatedFee}</span>
-                     </div>
-                   </div>
+                  <div className="mt-4 bg-black/40 px-6 py-4 rounded-xl border border-white/20 flex flex-col items-center">
+                    <span className="text-[10px] uppercase tracking-widest text-white/70 mb-1">
+                      Total Fee
+                    </span>
+                    <div className="flex items-center gap-2 text-white">
+                      <Banknote className="w-6 h-6 text-emerald-400" />
+                      <span className="text-3xl font-black">
+                        ₱{calculatedFee}
+                      </span>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
@@ -235,7 +315,7 @@ export default function EventQrScanner() {
                   <ShieldAlert className="w-16 h-16 text-rose-600" />
                 </div>
                 <h4 className="text-white font-black text-4xl uppercase tracking-tighter italic leading-none mb-2">
-                  Access Denied
+                  {errorHeading}
                 </h4>
                 <p className="text-rose-100 font-bold uppercase tracking-widest text-xs mb-6">
                   {feedbackMsg}

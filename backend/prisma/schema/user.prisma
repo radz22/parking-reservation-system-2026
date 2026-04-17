@@ -8,6 +8,10 @@ model User {
   contact    String
   plateNumber String?
   role       Role     @default(USER)
+  isBanned   Boolean  @default(false)
+  isVerified Boolean  @default(false)
+  otp        String?
+  otpExpires DateTime?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   reservations   ParkingReservation[]

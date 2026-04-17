@@ -7,22 +7,19 @@ import {
   LayoutDashboard,
   BookOpen,
   SquareUserRound,
-  SunIcon,
-  MoonIcon,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@base-ui/react';
-
+import Image from 'next/image';
 export const Navigation = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
-  };
+  // const toggleDarkMode = () => {
+  //   setDarkMode(!darkMode);
+  //   document.documentElement.classList.toggle('dark');
+  // };
 
   const buttonNav = () => setIsOpen(!isOpen);
 
@@ -39,80 +36,84 @@ export const Navigation = () => {
   }, [isOpen]);
 
   return (
-    <div className="navigation-container relative">
-      <div className="flex flex-row justify-between items-center p-5 lg:px-20 bg-primary fixed w-full top-0 z-50 shadow-md dark:bg-[#0f172a]  transition-colors duration-300">
-        <div className="flex items-center gap-2">
-          <button
-            id="nav-bar"
-            onClick={buttonNav}
-            className="group p-2 text-text rounded-4xl text-2xl cursor-pointer hover:bg-secondary transition duration-300 lg:hidden"
-          >
-            <Menu
-              size={24}
-              strokeWidth={3}
-              className="text-text dark:text-white group-hover:text-primary transition-colors duration-300"
+    <div className="navigation-container relative w-full">
+      <div className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#0f172a] shadow-md">
+        <div className="max-w-7xl mx-auto flex items-center justify-between h-16  py-10 mx-4 md:mx-auto">
+          <div className="flex items-center gap-2">
+            <button
+              id="nav-bar"
+              onClick={buttonNav}
+              className="group p-2 text-text rounded-4xl text-2xl cursor-pointer hover:bg-secondary transition duration-300 lg:hidden"
+            >
+              <Menu
+                size={24}
+                strokeWidth={3}
+                className="text-text dark:text-white group-hover:text-primary transition-colors duration-300"
+              />
+            </button>
+
+            <Image
+              src="/logo.png"
+              alt="logo"
+              width={100}
+              height={100}
+              className="w-32 h-18 max-lg:hidden"
             />
-          </button>
-
-          <h1 className="text-2xl font-bold text-text dark:text-white">
-            Parking Hub
-          </h1>
-        </div>
-
-        <nav className="hidden lg:flex items-center gap-8 dark:text-white">
-          <Link
-            href="/main-page"
-            className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
-          >
-            Home
-          </Link>
-          {session && (
-            <>
-              <Link
-                href="/user-dashboard"
-                className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/parking-reserve"
-                className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
-              >
-                Book Reservation
-              </Link>
-              <Link
-                href="/profile"
-                className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
-              >
-                Profile
-              </Link>
-            </>
-          )}
-        </nav>
-
-        <div className="flex justify-center items-center gap-3">
-          <button
+          </div>
+          <nav className="hidden lg:flex items-center gap-8 dark:text-white">
+            <Link
+              href="/main-page"
+              className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
+            >
+              Home
+            </Link>
+            {session && (
+              <>
+                <Link
+                  href="/user-dashboard"
+                  className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/parking-reserve"
+                  className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
+                >
+                  Book Reservation
+                </Link>
+                <Link
+                  href="/profile"
+                  className="text-lg font-medium text-text hover:text-secondary transition dark:text-white"
+                >
+                  Profile
+                </Link>
+              </>
+            )}
+          </nav>
+          <div className="flex justify-center items-center gap-3">
+            {/* <button
             onClick={toggleDarkMode}
             className="p-2.5 rounded-full bg-text dark:bg-slate-800 text-primary dark:text-yellow-400 hover:scale-110 transition-all"
           >
             {darkMode ? <SunIcon size={20} /> : <MoonIcon size={20} />}
-          </button>
+          </button> */}
 
-          {session ? (
-            <Button
-              onClick={() => signOut({ callbackUrl: '/sign-in' })}
-              className="hidden md:inline-flex text-base font-semibold text-text hover:bg-secondary hover:text-primary py-2 px-6 hover:rounded-full transition-all duration-300 ease-in-out dark:text-white"
-            >
-              Log Out
-            </Button>
-          ) : (
-            <Link
-              href="/sign-in"
-              className="hidden md:inline-flex text-base font-semibold text-text hover:bg-secondary hover:text-primary py-2 px-6 hover:rounded-full transition-all duration-300 ease-in-out dark:text-white"
-            >
-              Sign In
-            </Link>
-          )}
+            {session ? (
+              <Button
+                onClick={() => signOut({ callbackUrl: '/sign-in' })}
+                className="hidden md:inline-flex text-base font-semibold text-text hover:bg-secondary hover:text-primary py-2 px-6 hover:rounded-full transition-all duration-300 ease-in-out dark:text-white"
+              >
+                Log Out
+              </Button>
+            ) : (
+              <Link
+                href="/sign-in"
+                className="hidden md:inline-flex text-base font-semibold text-text hover:bg-secondary hover:text-primary py-2 px-6 hover:rounded-full transition-all duration-300 ease-in-out dark:text-white"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
@@ -129,9 +130,13 @@ export const Navigation = () => {
         className={`fixed top-0 left-0 w-65 h-full dark:bg-slate-950 bg-primary/60 backdrop-blur-md border-r border-primary shadow-xl transform transition-transform duration-300 ease-in-out overflow-auto z-60 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="flex items-center justify-baseline py-5 gap-9 mx-5 border-b border-primary dark:text-white">
-          <a href="#" className="text-2xl font-bold text-text dark:text-white">
-            Parking Hub
-          </a>
+          <Image
+            src="/logo.png"
+            alt="logo"
+            width={100}
+            height={100}
+            className="w-24 h-10 "
+          />
           <X
             id="exit-nav"
             onClick={buttonNav}
@@ -173,12 +178,14 @@ export const Navigation = () => {
               )}
             </ul>
 
-            <Link
-              href="/sign-up"
-              className="inline-flex mx-3 mt-10 py-3 px-10 bg-text text-primary text-base font-semibold rounded-2xl hover:bg-secondary hover:text-primary transition duration-300 ease-in-out"
-            >
-              Sign Up
-            </Link>
+            {!session && (
+              <Link
+                href="/sign-up"
+                className="inline-flex mx-3 mt-10 py-3 px-10 bg-text text-primary text-base font-semibold rounded-2xl hover:bg-secondary hover:text-primary transition duration-300 ease-in-out"
+              >
+                Sign Up
+              </Link>
+            )}
 
             {session && (
               <button

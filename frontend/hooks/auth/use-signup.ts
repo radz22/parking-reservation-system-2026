@@ -9,9 +9,9 @@ export const useSignup = () => {
   const router = useRouter();
   return useMutation({
     mutationFn: (data: RegisterRequest) => authService.register(data),
-    onSuccess: () => {
-      toast.success('Account created successfully! Please sign in.');
-      router.push('/sign-in');
+    onSuccess: (_, variables: RegisterRequest) => {
+      toast.success('Account created! Please verify your email.');
+      router.push(`/verify-email?email=${encodeURIComponent(variables.email)}`);
     },
     onError: (error: unknown) => {
       let message = 'Failed to create account. Please try again.';

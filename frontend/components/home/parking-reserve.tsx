@@ -1,13 +1,18 @@
 'use client';
 
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { Search, Motorbike, Car, Loader2 } from 'lucide-react';
+import { Search, Motorbike, Car, Loader2, CheckCircle2 } from 'lucide-react';
 import { Navigation } from './navigation';
 import { useProfile } from '@/hooks/use-profile';
 import { parkingSlotService } from '@/services/parking-slot-service';
 import { parkingReservationService } from '@/services/parking-reservation-service';
 import { ParkingSlot } from '@/types/parking-slot';
 import { toast } from 'sonner';
+import Image from 'next/image';
+import type {
+  CreateParkingReservationResult,
+  ParkingReservation as ParkingReservationRow,
+} from '@/types/parking-reservation';
 import { ReservationStatus } from '@/types/parking-reservation';
 import {
   Dialog,
@@ -58,8 +63,13 @@ export const ParkingReservation = () => {
         const reservations = await parkingReservationService.getAll({
           userId: profile.id,
         });
-        const activeRes = reservations.items.find((r: import('@/types/parking-reservation').ParkingReservation) => 
-          ['PENDING', 'RESERVED', 'OCCUPIED'].includes(r.status)
+        const activeStatuses: ReservationStatus[] = [
+          ReservationStatus.PENDING,
+          ReservationStatus.RESERVED,
+          ReservationStatus.OCCUPIED,
+        ];
+        const activeRes = reservations.items.find((r: ParkingReservationRow) =>
+          activeStatuses.includes(r.status),
         );
         setHasActiveReservation(!!activeRes);
       }
@@ -115,22 +125,25 @@ export const ParkingReservation = () => {
     setIsModalOpen(true);
   };
 
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [successData, setSuccessData] =
+    useState<CreateParkingReservationResult | null>(null);
+
   const handleReserveSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedSlot || !profile?.id || !profile.plateNumber) return;
 
     try {
       setIsReserving(true);
-      await parkingReservationService.create({
+      const res = await parkingReservationService.create({
         userId: profile.id,
         slotId: selectedSlot.id,
         plateNumber: profile.plateNumber,
       });
 
-      toast.success(
-        `Slot Number ${selectedSlot.slotNumber} reserved successfully!`,
-      );
+      setSuccessData(res);
       setIsModalOpen(false);
+      setIsSuccessModalOpen(true);
       fetchSlots();
     } catch (error: unknown) {
       console.error('Reservation failed:', error);
@@ -339,6 +352,70 @@ export const ParkingReservation = () => {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isSuccessModalOpen} onOpenChange={setIsSuccessModalOpen}>
+        <DialogContent className="sm:max-w-md rounded-3xl border-none p-0 overflow-hidden dark:bg-[#1a1a1a] dark:text-white">
+          <div className="bg-emerald-600 p-8 text-white text-center">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold">Reservation Successful!</h2>
+            <p className="text-emerald-100 mt-1 opacity-90">
+              Your parking spot is ready for you.
+            </p>
+          </div>
+
+          <div className="p-8 space-y-6">
+            <div className="bg-gray-50 dark:bg-[#2a2a2a] rounded-2xl p-6 flex flex-col items-center gap-4">
+              <div className="text-sm font-bold text-gray-500 uppercase tracking-widest">
+                Your QR Code
+              </div>
+              <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                {successData?.qrCodeToken && (
+                  <div className="relative w-48 h-48">
+                    <Image
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${successData.qrCodeToken}`}
+                      alt="Reservation QR"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-400 text-center max-w-[200px]">
+                Show this QR code at the entrance to check-in. This has also
+                been sent to your email.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 rounded-xl bg-gray-50 dark:bg-[#2a2a2a] border border-gray-100 dark:border-gray-800">
+                <div className="text-[10px] uppercase font-bold text-gray-400">
+                  Slot Number
+                </div>
+                <div className="font-bold text-gray-900 dark:text-white">
+                  {successData?.slot?.slotNumber || selectedSlot?.slotNumber}
+                </div>
+              </div>
+              <div className="p-3 rounded-xl bg-gray-50 dark:bg-[#2a2a2a] border border-gray-100 dark:border-gray-800">
+                <div className="text-[10px] uppercase font-bold text-gray-400">
+                  Status
+                </div>
+                <div className="font-bold text-emerald-600">
+                  {successData?.status}
+                </div>
+              </div>
+            </div>
+
+            <Button
+              className="w-full bg-gray-900 text-white hover:bg-black h-12 rounded-xl font-bold shadow-lg shadow-gray-200 dark:shadow-none"
+              onClick={() => setIsSuccessModalOpen(false)}
+            >
+              Done
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

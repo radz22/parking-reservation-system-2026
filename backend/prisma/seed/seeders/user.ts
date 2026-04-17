@@ -16,6 +16,10 @@ export const testUsers: {
       plateNumber: 'ABC-1234', 
       createdAt: new Date('2025-12-29'),
       updatedAt: new Date('2025-12-29'),
+      isBanned: false,
+      isVerified: true,
+      otp: null,
+      otpExpires: null,
     },
    
   ],

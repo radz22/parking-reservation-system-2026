@@ -18,6 +18,7 @@
     "sourceMap": true,
     "types": ["node"],
     "baseUrl": "src",
+    "jsx": "react-jsx",
     "paths": {
       "@/*": ["*"]
     }
