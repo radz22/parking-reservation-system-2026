@@ -384,7 +384,7 @@ export const ParkingReservation = () => {
                   </div>
                 )}
               </div>
-              <p className="text-[10px] text-gray-400 text-center max-w-[200px]">
+              <p className="text-[10px] text-gray-400 text-center max-w-50">
                 Show this QR code at the entrance to check-in. This has also
                 been sent to your email.
               </p>
