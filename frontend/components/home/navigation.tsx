@@ -12,6 +12,7 @@ import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { Button } from '@base-ui/react';
 import Image from 'next/image';
+
 export const Navigation = () => {
   const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
@@ -37,8 +38,8 @@ export const Navigation = () => {
 
   return (
     <div className="navigation-container relative w-full">
-      <div className="fixed top-0 left-0 w-full z-50 bg-white dark:bg-[#0f172a] shadow-md">
-        <div className="max-w-7xl mx-auto flex items-center justify-between h-16  py-10 mx-4 md:mx-auto">
+      <div className="fixed top-0 left-0 w-full z-50 bg-primary/80 dark:bg-[#0f172a] shadow-md">
+        <div className="mx-4 md:max-w-7xl md:mx-auto flex items-center justify-between h-16 py-10">
           <div className="flex items-center gap-2">
             <button
               id="nav-bar"
