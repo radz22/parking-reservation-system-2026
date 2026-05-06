@@ -10,35 +10,24 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { parkingSlotService } from '@/services/parking-slot-service';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { ParkingSlot } from '@/types/parking-slot';
+import { Loader2 } from 'lucide-react';
 
 export function DeleteParkingSlotModal({
   slot,
   isOpen,
   onClose,
-  onSuccess,
+  deleteMutation,
 }: {
   slot: ParkingSlot | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  deleteMutation: UseMutationResult<void, Error, string, unknown>;
 }) {
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation({
-    mutationFn: (id: string) => parkingSlotService.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parking-slots'] });
-      onSuccess();
-      onClose();
-    },
-  });
-
   const handleDelete = () => {
     if (slot) {
-      mutation.mutate(slot.id);
+      deleteMutation.mutate(slot.id);
     }
   };
 
@@ -51,7 +40,7 @@ export function DeleteParkingSlotModal({
           <DialogTitle>Delete Parking Slot</DialogTitle>
           <DialogDescription>
             Are you sure you want to delete parking slot{' '}
-            <span className="font-bold text-black">{slot.slotNumber}</span>? 
+            <span className="font-bold text-black">{slot.slotNumber}</span>?
             This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
@@ -61,7 +50,7 @@ export function DeleteParkingSlotModal({
             type="button"
             variant="outline"
             onClick={onClose}
-            disabled={mutation.isPending}
+            disabled={deleteMutation.isPending}
           >
             Cancel
           </Button>
@@ -69,9 +58,16 @@ export function DeleteParkingSlotModal({
             type="button"
             variant="destructive"
             onClick={handleDelete}
-            disabled={mutation.isPending}
+            disabled={deleteMutation.isPending}
           >
-            {mutation.isPending ? 'Deleting...' : 'Delete Slot'}
+            {deleteMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              'Delete Slot'
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
