@@ -38,7 +38,6 @@ type ParkingSlotTableProps = {
 export function ParkingSlotTable({
   parkingSlots,
   isLoading,
-  isFetching,
   currentPage,
   totalPages,
   total,
@@ -71,14 +70,19 @@ export function ParkingSlotTable({
           <TableBody>
             {parkingSlots.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-gray-500">
+                <TableCell
+                  colSpan={5}
+                  className="h-24 text-center text-gray-500"
+                >
                   No parking slots found.
                 </TableCell>
               </TableRow>
             ) : (
               parkingSlots.map((slot) => (
                 <TableRow key={slot.id} className="hover:bg-gray-50">
-                  <TableCell className="font-medium">{slot.slotNumber}</TableCell>
+                  <TableCell className="font-medium">
+                    {slot.slotNumber}
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="capitalize">
                       {slot.vehicleType.toLowerCase().replace('_', ' ')}

@@ -14,9 +14,9 @@ import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { parkingSlotService } from '@/services/parking-slot-service';
-import { VehicleType } from '@/types/parking-slot';
+import type { UseMutationResult } from '@tanstack/react-query';
+import { CreateParkingSlotInput, ParkingSlot } from '@/types/parking-slot';
+import { Loader2 } from 'lucide-react';
 
 const schema = z.object({
   slotNumber: z.string().min(1, 'Slot number is required'),
@@ -29,13 +29,17 @@ type FormData = z.infer<typeof schema>;
 export function CreateParkingSlotModal({
   isOpen,
   onClose,
-  onSuccess,
+  createMutation,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  createMutation: UseMutationResult<
+    ParkingSlot,
+    Error,
+    CreateParkingSlotInput,
+    unknown
+  >;
 }) {
-  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
@@ -49,18 +53,12 @@ export function CreateParkingSlotModal({
     },
   });
 
-  const mutation = useMutation({
-    mutationFn: (data: FormData) => parkingSlotService.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parking-slots'] });
-      reset();
-      onSuccess();
-      onClose();
-    },
-  });
-
   const onSubmit = (data: FormData) => {
-    mutation.mutate(data);
+    createMutation.mutate(data, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   return (
@@ -112,16 +110,23 @@ export function CreateParkingSlotModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={mutation.isPending}
+              disabled={createMutation.isPending}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-purple-600 hover:bg-purple-700"
-              disabled={mutation.isPending}
+              disabled={createMutation.isPending}
             >
-              {mutation.isPending ? 'Creating...' : 'Create Slot'}
+              {createMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create Slot'
+              )}
             </Button>
           </DialogFooter>
         </form>

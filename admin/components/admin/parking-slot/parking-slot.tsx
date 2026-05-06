@@ -34,6 +34,9 @@ export function ParkingSlot() {
     handleEdit,
     handleDeleteClick,
     handleSuccess,
+    createMutation,
+    updateMutation,
+    deleteMutation,
   } = useParkingSlot();
 
   return (
@@ -85,7 +88,7 @@ export function ParkingSlot() {
       <CreateParkingSlotModal
         isOpen={openCreateModal}
         onClose={() => setOpenCreateModal(false)}
-        onSuccess={handleSuccess}
+        createMutation={createMutation}
       />
 
       <ViewParkingSlotModal
@@ -98,14 +101,14 @@ export function ParkingSlot() {
         slot={selectedSlot}
         isOpen={openUpdateModal}
         onClose={() => setOpenUpdateModal(false)}
-        onSuccess={handleSuccess}
+        updateMutation={updateMutation}
       />
 
       <DeleteParkingSlotModal
         slot={selectedSlot}
         isOpen={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
-        onSuccess={handleSuccess}
+        deleteMutation={deleteMutation}
       />
     </>
   );

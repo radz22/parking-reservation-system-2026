@@ -14,9 +14,12 @@ import { Label } from '@/components/ui/label';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { parkingSlotService } from '@/services/parking-slot-service';
-import { ParkingSlot } from '@/types/parking-slot';
+import type { UseMutationResult } from '@tanstack/react-query';
+import {
+  ParkingSlot,
+  UpdateParkingSlotInput,
+} from '@/types/parking-slot';
+import { Loader2 } from 'lucide-react';
 
 const schema = z.object({
   slotNumber: z.string().min(1, 'Slot number is required'),
@@ -26,18 +29,24 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+type UpdateVariables = { id: string; data: UpdateParkingSlotInput };
+
 export function UpdateParkingSlotModal({
   slot,
   isOpen,
   onClose,
-  onSuccess,
+  updateMutation,
 }: {
   slot: ParkingSlot | null;
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => void;
+  updateMutation: UseMutationResult<
+    ParkingSlot,
+    Error,
+    UpdateVariables,
+    unknown
+  >;
 }) {
-  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
@@ -57,17 +66,9 @@ export function UpdateParkingSlotModal({
     }
   }, [slot, reset]);
 
-  const mutation = useMutation({
-    mutationFn: (data: FormData) => parkingSlotService.update(slot!.id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['parking-slots'] });
-      onSuccess();
-      onClose();
-    },
-  });
-
   const onSubmit = (data: FormData) => {
-    mutation.mutate(data);
+    if (!slot) return;
+    updateMutation.mutate({ id: slot.id, data });
   };
 
   if (!slot) return null;
@@ -121,16 +122,23 @@ export function UpdateParkingSlotModal({
               type="button"
               variant="outline"
               onClick={onClose}
-              disabled={mutation.isPending}
+              disabled={updateMutation.isPending}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="bg-purple-600 hover:bg-purple-700"
-              disabled={mutation.isPending}
+              disabled={updateMutation.isPending}
             >
-              {mutation.isPending ? 'Updating...' : 'Update Slot'}
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Update Slot'
+              )}
             </Button>
           </DialogFooter>
         </form>
